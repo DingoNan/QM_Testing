@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QM-Testing · API 自动化测试</title>
+  <link rel="stylesheet" href="styles/global.css">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="api-adapter.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Toast 容器 -->
+  <div id="toast-root" class="toast-container"></div>
+
+  <script type="text/babel" src="app.js"></script>
+  <script type="text/babel" src="stores/pipelineStore.js"></script>
+
+  <!-- Pages -->
+  <script type="text/babel" src="pages/DashboardPage.js"></script>
+  <script type="text/babel" src="pages/ImportPage.js"></script>
+  <script type="text/babel" src="pages/PipelinePage.js"></script>
+  <script type="text/babel" src="pages/ReviewPage.js"></script>
+  <script type="text/babel" src="pages/LinkerPage.js"></script>
+  <script type="text/babel" src="pages/RegressionPage.js"></script>
+  <script type="text/babel" src="pages/ExportPage.js"></script>
+  <script type="text/babel" src="pages/HistoryPage.js"></script>
+  <script type="text/babel" src="pages/SettingsPage.js"></script>
+  <script type="text/babel" src="pages/ReportsPage.js"></script>
+  <script type="text/babel" src="pages/DataPoolsPage.js"></script>
+  <script type="text/babel" src="pages/LogViewerPage.js"></script>
+
+  <!-- Components -->
+  <script type="text/babel" src="components/VariableSelector.js"></script>
+  <script type="text/babel" src="components/TestDataManager.js"></script>
+  <script type="text/babel" src="components/ChainRuleEditor.js"></script>
+  <script type="text/babel" src="components/DataBindingWizard.js"></script>
+  <script type="text/babel" src="components/DiffPreview.js"></script>
+  <script type="text/babel" src="components/EnvForm.js"></script>
+  <script type="text/babel" src="components/PipelineProgress.js"></script>
+  <script type="text/babel" src="components/StepDetail.js"></script>
+
+  <script type="text/babel">
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>

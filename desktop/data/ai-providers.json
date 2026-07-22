@@ -1,0 +1,26 @@
+[
+  {
+    "id": "deepseek-cloud",
+    "name": "DeepSeek 云端",
+    "type": "openai",
+    "baseUrl": "https://api.deepseek.com/v1",
+    "apiKey": "sk-792f356d6729437f812dda03fb9c8aae",
+    "defaultModel": "deepseek-v4-flash",
+    "priority": 0,
+    "isActive": true,
+    "createdAt": "2026-07-20T09:48:55.113Z",
+    "updatedAt": "2026-07-20T10:04:13.776Z"
+  },
+  {
+    "id": "ollama-local",
+    "name": "本地 Ollama",
+    "type": "ollama",
+    "baseUrl": "http://localhost:11434",
+    "apiKey": "",
+    "defaultModel": "qwen3:8b",
+    "priority": 1,
+    "isActive": false,
+    "createdAt": "2026-07-20T09:48:55.112Z",
+    "updatedAt": "2026-07-20T09:50:31.851Z"
+  }
+]

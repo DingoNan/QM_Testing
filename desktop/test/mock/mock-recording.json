@@ -1,0 +1,106 @@
+[
+  {
+    "scenarioName": "用户登录场景",
+    "records": [
+      {
+        "seq": 1,
+        "time": "2026-07-20T10:00:00.000Z",
+        "method": "POST",
+        "url": "https://api.example.com/api/v1/auth/login",
+        "status": 200,
+        "type": "XHR",
+        "duration": "320ms",
+        "requestHeaders": {
+          "content-type": "application/json",
+          "accept": "application/json"
+        },
+        "requestBody": {
+          "username": "testuser",
+          "password": "********"
+        },
+        "responseBody": {
+          "code": 0,
+          "message": "success",
+          "data": {
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+            "userId": 10086,
+            "nickname": "testuser",
+            "role": "admin"
+          }
+        }
+      },
+      {
+        "seq": 2,
+        "time": "2026-07-20T10:00:01.200Z",
+        "method": "GET",
+        "url": "https://api.example.com/api/v1/user/profile",
+        "status": 200,
+        "type": "XHR",
+        "duration": "150ms",
+        "requestHeaders": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ",
+          "content-type": "application/json"
+        },
+        "requestBody": null,
+        "responseBody": {
+          "code": 0,
+          "data": {
+            "userId": 10086,
+            "nickname": "testuser",
+            "email": "test@example.com",
+            "phone": "13800138000"
+          }
+        }
+      },
+      {
+        "seq": 3,
+        "time": "2026-07-20T10:00:02.500Z",
+        "method": "GET",
+        "url": "https://api.example.com/api/v1/orders/10086",
+        "status": 200,
+        "type": "XHR",
+        "duration": "280ms",
+        "requestHeaders": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
+        },
+        "requestBody": null,
+        "responseBody": {
+          "code": 0,
+          "data": {
+            "orderId": 8080,
+            "amount": 299.99,
+            "status": "paid",
+            "items": [
+              { "productId": 1001, "name": "商品A", "price": 99.99, "quantity": 2 },
+              { "productId": 1002, "name": "商品B", "price": 199.99, "quantity": 1 }
+            ]
+          }
+        }
+      },
+      {
+        "seq": 4,
+        "time": "2026-07-20T10:00:03.800Z",
+        "method": "POST",
+        "url": "https://api.example.com/api/v1/orders/8080/pay",
+        "status": 200,
+        "type": "XHR",
+        "duration": "500ms",
+        "requestHeaders": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
+        },
+        "requestBody": {
+          "orderId": 8080,
+          "amount": 299.99,
+          "payMethod": "wechat"
+        },
+        "responseBody": {
+          "code": 0,
+          "data": {
+            "transactionId": "TXN20260720123456789",
+            "payStatus": "success"
+          }
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,4708 @@
+{
+  "caseName": "Test-0000",
+  "stats": {
+    "total": 54,
+    "passed": 2,
+    "failed": 52,
+    "error": 0,
+    "passRate": 4,
+    "totalAssertions": 118,
+    "passedAssertions": 4,
+    "assertionPassRate": 3
+  },
+  "results": [
+    {
+      "seq": 0,
+      "apiName": "auth.login",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/auth/login",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      "requestBody": {
+        "username": "admin",
+        "password": "1"
+      },
+      "responseStatus": 200,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:07 GMT",
+        "content-type": "application/json",
+        "transfer-encoding": "chunked",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "statusCode": "200",
+        "message": "操作成功",
+        "detail": null,
+        "data": {
+          "token": "eyJhbGciOiJIUzI1NiJ9.eyJhdXRoTW9kZSI6IkxPQ0FMIiwiYWNjb3VudElkIjoiQUNDT1VOVF9PTkxZX0RFVk9QU19BRE1JTiIsInNlc3Npb25WZXJzaW9uIjoiMWU1M2Y2NDczNTY0NGRjZTlmMjFkZmJjYjYxMTAxNjUiLCJ1c2VySWQiOiJBQ0NPVU5UX09OTFlfREVWT1BTX0FETUlOIiwidGVybWluYWxUeXBlIjoiUEMiLCJzdWIiOiJBQ0NPVU5UX09OTFlfREVWT1BTX0FETUlOIiwiaWF0IjoxNzg0Njk5NTg3LCJleHAiOjE3ODQ3MDY3ODd9.rYghM4ZKE2HFj0w0vcg6vGVczz_hZ-LIxlTf576b5ys",
+          "userInfo": {
+            "userId": "ACCOUNT_ONLY_DEVOPS_ADMIN",
+            "username": "admin",
+            "phone": null,
+            "rysfDm": null,
+            "deptId": null,
+            "deptName": null,
+            "avatar": null,
+            "roles": [
+              "SYSTEM_ADMIN"
+            ],
+            "dataScope": "ALL",
+            "personType": null,
+            "no": null
+          },
+          "permissions": [
+            "config:param:add",
+            "project:implement:export",
+            "project:pay:edit",
+            "assessment:user:batch-adjust",
+            "att:my:view",
+            "project:accept:view",
+            "hr:operation:export",
+            "mini-approval:approval:detail",
+            "vacation:leave:view",
+            "hr:item-collect:init",
+            "meeting:regulation:add",
+            "project:approval:import",
+            "asset:list:view",
+            "hr:user-item:add",
+            "sys:role-perm:save",
+            "vacation:overtime:view",
+            "att:daily:status-adjust",
+            "project:accept:delete",
+            "hr:retire:view",
+            "mini-workbench:workbench:todo",
+            "vacation:vacation:approve",
+            "assessment:registration:view",
+            "meeting:room:delete",
+            "assessment:user:detail",
+            "config:element:detail",
+            "project:contract:export",
+            "vacation:backleave:detail",
+            "att:daily:records-view",
+            "project:req:edit",
+            "hr:retire:delete",
+            "hr:passport:delete",
+            "project:approval:view",
+            "hr:rehire:apply",
+            "asset:type:detail",
+            "salary:mysalary:detail",
+            "assessment:report:upload",
+            "meeting:reserve:add",
+            "salary:item:delete",
+            "salary:collect:view",
+            "statistics:salary:view",
+            "statistics:vacation:view",
+            "assessment:user:view",
+            "hr:dept:export",
+            "salary:config:detail",
+            "assessment:type:delete",
+            "meeting:reserve:detail",
+            "hr:retire:apply",
+            "assessment:config:delete",
+            "project:approval:detail",
+            "hr:user:view",
+            "assessment:score:save",
+            "salary:check:export",
+            "config:element:view",
+            "hr:user:status",
+            "asset:type:import",
+            "project:purchase:delete",
+            "project:req:export",
+            "vacation:vacation:detail",
+            "salary:item:edit",
+            "att:daily:view",
+            "sys:security-user:view",
+            "sys:data-scope:view",
+            "asset:type:export",
+            "project:contract:import",
+            "project:approval:export",
+            "assessment:report:view",
+            "assessment:represent:save",
+            "hr:resign:detail",
+            "meeting:regulation:view",
+            "project:implement:import",
+            "project:pay:detail",
+            "vacation:goout:view",
+            "hr:user:detail",
+            "vacation:config:view",
+            "project:plan:add",
+            "vacation:config:add",
+            "salary:mysalary:view",
+            "hr:user-item:detail",
+            "vacation:overtime:detail",
+            "sys:permission:add",
+            "assessment:represent:delete",
+            "project:implement:view",
+            "salary:check:deduct",
+            "assessment:type:edit",
+            "vacation:overtime:approve",
+            "hr:user-item:view",
+            "hr:dept:import",
+            "mini-application:application:form",
+            "project:contract:detail",
+            "vacation:compensatory:view",
+            "salary:mysalary:export",
+            "project:req:add",
+            "statistics:attendance:view",
+            "assessment:config:view",
+            "project:approval:edit",
+            "vacation:config:edit",
+            "hr:operation:edit",
+            "project:contract:view",
+            "asset:list:edit",
+            "meeting:reserve:view",
+            "attachment:template:view",
+            "project:pay:import",
+            "project:accept:edit",
+            "assessment:dept-score:save",
+            "project:req:import",
+            "sys:permission:function-delete",
+            "project:plan:edit",
+            "salary:check:edit",
+            "hr:passport:add",
+            "vacation:config:delete",
+            "salary:config:delete",
+            "att:makeup:view",
+            "meeting:room:add",
+            "hr:item-collect:save",
+            "hr:user:import",
+            "statistics:hr:summary",
+            "meeting:regulation:detail",
+            "attachment:template:delete",
+            "meeting:template:delete",
+            "assessment:evaluate:view",
+            "mini-application:application:view",
+            "project:plan:export",
+            "salary:config:add",
+            "asset:list:add",
+            "att:config:edit",
+            "attachment:template:add",
+            "config:element:delete",
+            "statistics:assessment:view",
+            "vacation:vacation:view",
+            "att:config:add",
+            "vacation:goout:approve",
+            "salary:collect:detail",
+            "hr:rehire:view",
+            "sys:role:add",
+            "hr:rehire:delete",
+            "salary:check:settle",
+            "salary:item:detail",
+            "assessment:dept-score:submit",
+            "hik:sync:delete",
+            "hr:operation:detail",
+            "mini-assessment:assessment:detail",
+            "att:daily:edit",
+            "sys:user-role:view",
+            "hr:dept:edit",
+            "salary:config:edit",
+            "salary:item:view",
+            "config:param:delete",
+            "project:accept:add",
+            "config:element:edit",
+            "asset:type:add",
+            "project:plan:import",
+            "hr:item-collect:detail",
+            "asset:list:delete",
+            "assessment:score:submit",
+            "mini-application:application:detail",
+            "mini-approval:approval:reject",
+            "statistics:attendance:export",
+            "meeting:reserve:delete",
+            "sys:cache:refresh",
+            "project:purchase:detail",
+            "hr:passport:edit",
+            "project:plan:view",
+            "salary:check:detail",
+            "hr:dept:view",
+            "asset:list:import",
+            "sys:permission:status",
+            "salary:item:add",
+            "assessment:type:view",
+            "mini-me:me:profile",
+            "sys:permission:edit",
+            "sys:role:edit",
+            "project:implement:edit",
+            "project:contract:edit",
+            "project:accept:import",
+            "project:req:detail",
+            "statistics:attendance:report",
+            "mini-assessment:assessment:score",
+            "project:pay:export",
+            "hr:user:export",
+            "hr:user-item:delete",
+            "asset:type:delete",
+            "sys:permission:module-save",
+            "meeting:room:import",
+            "meeting:reserve:export",
+            "project:purchase:edit",
+            "project:plan:detail",
+            "vacation:leave:detail",
+            "hr:resign:edit",
+            "mini-application:application:submit",
+            "meeting:room:edit",
+            "config:param:view",
+            "sys:data-scope:save",
+            "asset:type:view",
+            "project:approval:delete",
+            "hr:dept:detail",
+            "hr:operation:add",
+            "assessment:score:view",
+            "hr:user:edit",
+            "mini-assessment:assessment:view",
+            "assessment:config:edit",
+            "hik:sync:person",
+            "hr:operation:delete",
+            "vacation:leave:approve",
+            "attachment:rule:view",
+            "salary:check:reverse-settle",
+            "project:implement:delete",
+            "statistics:operation:export",
+            "hr:item-collect:delete",
+            "assessment:represent:score",
+            "meeting:room:detail",
+            "assessment:represent:view",
+            "hr:resign:add",
+            "sys:menu:view",
+            "att:config:delete",
+            "project:purchase:import",
+            "hr:rehire:edit",
+            "meeting:room:view",
+            "statistics:hr:analysis",
+            "meeting:template:edit",
+            "hr:retire:detail",
+            "vacation:config:status",
+            "assessment:user:rate-setting",
+            "hr:operation:view",
+            "meeting:room:export",
+            "sys:role:delete",
+            "sys:permission:delete",
+            "project:contract:delete",
+            "assessment:my:view",
+            "mini-me:me:records",
+            "project:approval:add",
+            "hr:rehire:detail",
+            "project:purchase:add",
+            "sys:role:view",
+            "assessment:user:adjust",
+            "salary:collect:save",
+            "sys:role:status",
+            "hr:item-collect:view",
+            "salary:check:deduct-sick",
+            "project:implement:add",
+            "hr:dept:delete",
+            "hr:passport:view",
+            "mini-approval:approval:list",
+            "salary:check:performance",
+            "project:pay:view",
+            "config:element:export",
+            "config:param:edit",
+            "meeting:regulation:delete",
+            "asset:type:edit",
+            "meeting:regulation:edit",
+            "hr:resign:view",
+            "project:pay:add",
+            "mini-approval:approval:approve",
+            "project:implement:detail",
+            "project:pay:delete",
+            "project:purchase:export",
+            "project:accept:export",
+            "salary:check:init",
+            "asset:list:detail",
+            "salary:config:view",
+            "sys:cache:refresh-all",
+            "assessment:type:add",
+            "project:purchase:view",
+            "attachment:rule:edit",
+            "config:param:detail",
+            "mini-workbench:workbench:dashboard",
+            "sys:permission:function-save",
+            "hr:retire:edit",
+            "vacation:compensatory:detail",
+            "vacation:backleave:approve",
+            "meeting:template:detail",
+            "project:req:delete",
+            "asset:list:export",
+            "hr:user:delete",
+            "att:daily:export",
+            "meeting:reserve:edit",
+            "att:config:view",
+            "sys:role-perm:view",
+            "vacation:compensatory:approve",
+            "meeting:template:view",
+            "project:contract:add",
+            "project:accept:detail",
+            "statistics:operation:view",
+            "sys:user-role:save",
+            "config:element:add",
+            "hr:user:add",
+            "assessment:dept-score:view",
+            "hr:dept:add",
+            "project:req:view",
+            "hr:resign:delete",
+            "att:makeup:detail",
+            "salary:check:view",
+            "att:daily:detail",
+            "attachment:template:edit",
+            "hr:passport:detail",
+            "sys:permission:view",
+            "meeting:reserve:import",
+            "hr:user-item:edit",
+            "salary:check:performance-year",
+            "att:makeup:apply",
+            "salary:collect:init",
+            "config:element:import",
+            "meeting:template:add",
+            "project:plan:delete",
+            "vacation:backleave:view",
+            "mini-me:me:statistics"
+          ]
+        },
+        "fieldTypes": null
+      },
+      "responseSize": 15,
+      "duration": 144,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "200",
+          "validateType": 3,
+          "passed": true,
+          "message": "通过"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "操作成功",
+          "validateType": 3,
+          "passed": true,
+          "message": "通过"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "seq": 1,
+      "apiName": "menu.tree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/auth/menu/tree",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 200,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:07 GMT",
+        "content-type": "application/json",
+        "transfer-encoding": "chunked",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "statusCode": "200",
+        "message": "操作成功",
+        "detail": null,
+        "data": [
+          {
+            "id": "16000",
+            "module_id": "16000",
+            "parent_id": "0",
+            "name": "工作台",
+            "text": "工作台",
+            "url": null,
+            "disp_order": 1,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "16002",
+                "module_id": "workbench-user",
+                "parent_id": "16000",
+                "name": "工作台（非管理）",
+                "text": "工作台（非管理）",
+                "url": "/#/workbenchUser?menuid=workbench-user&moduleid=workbench-user&myMenuid=16002",
+                "disp_order": 2,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              }
+            ]
+          },
+          {
+            "id": "4000",
+            "module_id": "4000",
+            "parent_id": "0",
+            "name": "人事管理",
+            "text": "人事管理",
+            "url": null,
+            "disp_order": 2,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "4002",
+                "module_id": "hr-personal-information-manage",
+                "parent_id": "4000",
+                "name": "人员信息管理",
+                "text": "人员信息管理",
+                "url": "/#/personalInformationManage?menuid=hr-personal-information-manage&moduleid=hr-personal-information-manage&myMenuid=4002",
+                "disp_order": 1,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "4003",
+                "module_id": "hr-retirement-manage",
+                "parent_id": "4000",
+                "name": "退休人员管理",
+                "text": "退休人员管理",
+                "url": "/#/retirementManage?menuid=hr-retirement-manage&moduleid=hr-retirement-manage&myMenuid=4003",
+                "disp_order": 3,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "4004",
+                "module_id": "hr-passport-manage",
+                "parent_id": "4000",
+                "name": "因私护照管理",
+                "text": "因私护照管理",
+                "url": "/#/passportManage?menuid=hr-passport-manage&moduleid=hr-passport-manage&myMenuid=4004",
+                "disp_order": 4,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "4005",
+                "module_id": "hr-operations-manage",
+                "parent_id": "4000",
+                "name": "运维人员管理",
+                "text": "运维人员管理",
+                "url": "/#/operationsManage?menuid=hr-operations-manage&moduleid=hr-operations-manage&myMenuid=4005",
+                "disp_order": 5,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              }
+            ]
+          },
+          {
+            "id": "9000",
+            "module_id": "9000",
+            "parent_id": "0",
+            "name": "出勤管理",
+            "text": "出勤管理",
+            "url": null,
+            "disp_order": 3,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "9002",
+                "module_id": "attendance-daily",
+                "parent_id": "9000",
+                "name": "每日出勤",
+                "text": "每日出勤",
+                "url": "/#/dailyAttendance?menuid=attendance-daily&moduleid=attendance-daily&myMenuid=9002",
+                "disp_order": 1,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "9003",
+                "module_id": "attendance-makeup",
+                "parent_id": "9000",
+                "name": "补考勤",
+                "text": "补考勤",
+                "url": "/#/makeupAttendance?menuid=attendance-makeup&moduleid=attendance-makeup&myMenuid=9003",
+                "disp_order": 2,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "9004",
+                "module_id": "attendance-my",
+                "parent_id": "9000",
+                "name": "我的出勤",
+                "text": "我的出勤",
+                "url": "/#/myAttendance?menuid=attendance-my&moduleid=attendance-my&myMenuid=9004",
+                "disp_order": 3,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              }
+            ]
+          },
+          {
+            "id": "8000",
+            "module_id": "8000",
+            "parent_id": "0",
+            "name": "请休假管理",
+            "text": "请休假管理",
+            "url": null,
+            "disp_order": 4,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "8002",
+                "module_id": "vacation-leave-manage",
+                "parent_id": "8000",
+                "name": "请假管理",
+                "text": "请假管理",
+                "url": "/#/leaveManage?menuid=vacation-leave-manage&moduleid=vacation-leave-manage&myMenuid=8002",
+                "disp_order": 1,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "8003",
+                "module_id": "vacation-manage",
+                "parent_id": "8000",
+                "name": "休假管理",
+                "text": "休假管理",
+                "url": "/#/vacationManage?menuid=vacation-manage&moduleid=vacation-manage&myMenuid=8003",
+                "disp_order": 2,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "8009",
+                "module_id": "vacation-my-manage",
+                "parent_id": "8000",
+                "name": "我的请休假",
+                "text": "我的请休假",
+                "url": "/#/myLeaveVacation?menuid=vacation-my-manage&moduleid=vacation-my-manage&myMenuid=8009",
+                "disp_order": 3,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "8004",
+                "module_id": "vacation-go-out-manage",
+                "parent_id": "8000",
+                "name": "因公外出",
+                "text": "因公外出",
+                "url": "/#/goOutManage?menuid=vacation-go-out-manage&moduleid=vacation-go-out-manage&myMenuid=8004",
+                "disp_order": 4,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "8008",
+                "module_id": "vacation-overtime-manage",
+                "parent_id": "8000",
+                "name": "加班管理",
+                "text": "加班管理",
+                "url": "/#/overtimeManage?menuid=vacation-overtime-manage&moduleid=vacation-overtime-manage&myMenuid=8008",
+                "disp_order": 5,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "8100",
+                "module_id": "8100",
+                "parent_id": "8000",
+                "name": "抵扣与销假管理",
+                "text": "抵扣与销假管理",
+                "url": null,
+                "disp_order": 6,
+                "open_type": null,
+                "server_code": null,
+                "is_visible": 1,
+                "children": [
+                  {
+                    "id": "8005",
+                    "module_id": "vacation-deduction-manage",
+                    "parent_id": "8100",
+                    "name": "抵扣管理",
+                    "text": "抵扣管理",
+                    "url": "/#/deductionManage?menuid=vacation-deduction-manage&moduleid=vacation-deduction-manage&myMenuid=8005",
+                    "disp_order": 1,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "8006",
+                    "module_id": "vacation-compensatory-manage",
+                    "parent_id": "8100",
+                    "name": "补休管理",
+                    "text": "补休管理",
+                    "url": "/#/compensatoryManage?menuid=vacation-compensatory-manage&moduleid=vacation-compensatory-manage&myMenuid=8006",
+                    "disp_order": 2,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "8007",
+                    "module_id": "vacation-back-leave-manage",
+                    "parent_id": "8100",
+                    "name": "销假管理",
+                    "text": "销假管理",
+                    "url": "/#/backLeaveManage?menuid=vacation-back-leave-manage&moduleid=vacation-back-leave-manage&myMenuid=8007",
+                    "disp_order": 3,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "11000",
+            "module_id": "11000",
+            "parent_id": "0",
+            "name": "考核管理",
+            "text": "考核管理",
+            "url": null,
+            "disp_order": 5,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "11100",
+                "module_id": "11100",
+                "parent_id": "11000",
+                "name": "月度考核",
+                "text": "月度考核",
+                "url": null,
+                "disp_order": 1,
+                "open_type": null,
+                "server_code": null,
+                "is_visible": 1,
+                "children": [
+                  {
+                    "id": "11003",
+                    "module_id": "kpi-monthly-person-manage",
+                    "parent_id": "11100",
+                    "name": "月考人员管理",
+                    "text": "月考人员管理",
+                    "url": "/#/kpiMonthlyPersonManage?menuid=kpi-monthly-person-manage&moduleid=kpi-monthly-person-manage&myMenuid=11003",
+                    "disp_order": 1,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11005",
+                    "module_id": "kpi-monthly-summary-report",
+                    "parent_id": "11100",
+                    "name": "月度总结报告",
+                    "text": "月度总结报告",
+                    "url": "/#/kpiMonthlySummaryReport?menuid=kpi-monthly-summary-report&moduleid=kpi-monthly-summary-report&myMenuid=11005",
+                    "disp_order": 2,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11008",
+                    "module_id": "kpi-monthly-score-report",
+                    "parent_id": "11100",
+                    "name": "月度考核打分",
+                    "text": "月度考核打分",
+                    "url": "/#/kpiMonthlyScoreReport?menuid=kpi-monthly-score-report&moduleid=kpi-monthly-score-report&myMenuid=11008",
+                    "disp_order": 3,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11011",
+                    "module_id": "kpi-monthly-assessment-view",
+                    "parent_id": "11100",
+                    "name": "月度考核评定",
+                    "text": "月度考核评定",
+                    "url": "/#/kpiMonthlyAssessmentView?menuid=kpi-monthly-assessment-view&moduleid=kpi-monthly-assessment-view&myMenuid=11011",
+                    "disp_order": 4,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11014",
+                    "module_id": "kpi-monthly-my-query",
+                    "parent_id": "11100",
+                    "name": "我的月度考核",
+                    "text": "我的月度考核",
+                    "url": "/#/kpiMonthlyMyAssessmentQuery?menuid=kpi-monthly-my-query&moduleid=kpi-monthly-my-query&myMenuid=11014",
+                    "disp_order": 5,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "11200",
+                "module_id": "11200",
+                "parent_id": "11000",
+                "name": "年度考核",
+                "text": "年度考核",
+                "url": null,
+                "disp_order": 2,
+                "open_type": null,
+                "server_code": null,
+                "is_visible": 1,
+                "children": [
+                  {
+                    "id": "11002",
+                    "module_id": "kpi-annual-person-manage",
+                    "parent_id": "11200",
+                    "name": "年考人员管理",
+                    "text": "年考人员管理",
+                    "url": "/#/kpiAnnualPersonManage?menuid=kpi-annual-person-manage&moduleid=kpi-annual-person-manage&myMenuid=11002",
+                    "disp_order": 1,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11004",
+                    "module_id": "kpi-annual-summary-report",
+                    "parent_id": "11200",
+                    "name": "年度总结报告",
+                    "text": "年度总结报告",
+                    "url": "/#/kpiAnnualSummaryReport?menuid=kpi-annual-summary-report&moduleid=kpi-annual-summary-report&myMenuid=11004",
+                    "disp_order": 2,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11007",
+                    "module_id": "kpi-annual-score-report",
+                    "parent_id": "11200",
+                    "name": "年度考核打分",
+                    "text": "年度考核打分",
+                    "url": "/#/kpiAnnualScoreReport?menuid=kpi-annual-score-report&moduleid=kpi-annual-score-report&myMenuid=11007",
+                    "disp_order": 3,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11020",
+                    "module_id": "kpi-annual-calculation",
+                    "parent_id": "11200",
+                    "name": "年度考核计算",
+                    "text": "年度考核计算",
+                    "url": "/#/kpiAnnualCalculation?menuid=kpi-annual-calculation&moduleid=kpi-annual-calculation&myMenuid=11020",
+                    "disp_order": 4,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11010",
+                    "module_id": "kpi-annual-assessment-view",
+                    "parent_id": "11200",
+                    "name": "年度考核评定",
+                    "text": "年度考核评定",
+                    "url": "/#/kpiAnnualAssessmentView?menuid=kpi-annual-assessment-view&moduleid=kpi-annual-assessment-view&myMenuid=11010",
+                    "disp_order": 5,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11013",
+                    "module_id": "kpi-annual-my-query",
+                    "parent_id": "11200",
+                    "name": "我的年度考核",
+                    "text": "我的年度考核",
+                    "url": "/#/kpiAnnualMyAssessmentQuery?menuid=kpi-annual-my-query&moduleid=kpi-annual-my-query&myMenuid=11013",
+                    "disp_order": 6,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "11300",
+                "module_id": "11300",
+                "parent_id": "11000",
+                "name": "处室考核",
+                "text": "处室考核",
+                "url": null,
+                "disp_order": 3,
+                "open_type": null,
+                "server_code": null,
+                "is_visible": 1,
+                "children": [
+                  {
+                    "id": "11006",
+                    "module_id": "kpi-office-summary-report",
+                    "parent_id": "11300",
+                    "name": "处室总结报告",
+                    "text": "处室总结报告",
+                    "url": "/#/kpiOfficeSummaryReport?menuid=kpi-office-summary-report&moduleid=kpi-office-summary-report&myMenuid=11006",
+                    "disp_order": 1,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11009",
+                    "module_id": "kpi-office-score-report",
+                    "parent_id": "11300",
+                    "name": "处室考核打分",
+                    "text": "处室考核打分",
+                    "url": "/#/kpiOfficeScoreReport?menuid=kpi-office-score-report&moduleid=kpi-office-score-report&myMenuid=11009",
+                    "disp_order": 2,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "11012",
+                    "module_id": "kpi-office-assessment-view",
+                    "parent_id": "11300",
+                    "name": "处室考核评定",
+                    "text": "处室考核评定",
+                    "url": "/#/kpiOfficeAssessmentView?menuid=kpi-office-assessment-view&moduleid=kpi-office-assessment-view&myMenuid=11012",
+                    "disp_order": 3,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "3000",
+            "module_id": "3000",
+            "parent_id": "0",
+            "name": "工资管理",
+            "text": "工资管理",
+            "url": null,
+            "disp_order": 6,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "3003",
+                "module_id": "salary-check-generate",
+                "parent_id": "3000",
+                "name": "工资核对与生成",
+                "text": "工资核对与生成",
+                "url": "/#/salaryCheckGenerate?menuid=salary-check-generate&moduleid=salary-check-generate&myMenuid=3003",
+                "disp_order": 1,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "3004",
+                "module_id": "salary-query",
+                "parent_id": "3000",
+                "name": "我的工资条查询",
+                "text": "我的工资条查询",
+                "url": "/#/salaryQuery?menuid=salary-query&moduleid=salary-query&myMenuid=3004",
+                "disp_order": 2,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              }
+            ]
+          },
+          {
+            "id": "5000",
+            "module_id": "5000",
+            "parent_id": "0",
+            "name": "固定资产管理",
+            "text": "固定资产管理",
+            "url": null,
+            "disp_order": 7,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "5001",
+                "module_id": "asset-list",
+                "parent_id": "5000",
+                "name": "资产列表",
+                "text": "资产列表",
+                "url": "/#/assetList?menuid=asset-list&moduleid=asset-list&myMenuid=5001",
+                "disp_order": 1,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              }
+            ]
+          },
+          {
+            "id": "6000",
+            "module_id": "6000",
+            "parent_id": "0",
+            "name": "综合管理",
+            "text": "综合管理",
+            "url": null,
+            "disp_order": 8,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "6002",
+                "module_id": "meeting-manage",
+                "parent_id": "6000",
+                "name": "会议管理",
+                "text": "会议管理",
+                "url": "/#/meetingManage?menuid=meeting-manage&moduleid=meeting-manage&myMenuid=6002",
+                "disp_order": 1,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "6003",
+                "module_id": "attachment-template-manage",
+                "parent_id": "6000",
+                "name": "文件模板",
+                "text": "文件模板",
+                "url": "/#/attachmentTemplateManage?menuid=attachment-template-manage&moduleid=attachment-template-manage&myMenuid=6003",
+                "disp_order": 2,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "6004",
+                "module_id": "attachment-rule-manage",
+                "parent_id": "6000",
+                "name": "规章制度",
+                "text": "规章制度",
+                "url": "/#/attachmentRuleManage?menuid=attachment-rule-manage&moduleid=attachment-rule-manage&myMenuid=6004",
+                "disp_order": 3,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              }
+            ]
+          },
+          {
+            "id": "14000",
+            "module_id": "14000",
+            "parent_id": "0",
+            "name": "项目管理",
+            "text": "项目管理",
+            "url": null,
+            "disp_order": 9,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "14001",
+                "module_id": "project-requirement-manage",
+                "parent_id": "14000",
+                "name": "需求管理",
+                "text": "需求管理",
+                "url": "/#/projectRequirementManage?menuid=project-requirement-manage&moduleid=project-requirement-manage&myMenuid=14001",
+                "disp_order": 1,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "14002",
+                "module_id": "project-approval-manage",
+                "parent_id": "14000",
+                "name": "立项管理",
+                "text": "立项管理",
+                "url": "/#/projectApprovalManage?menuid=project-approval-manage&moduleid=project-approval-manage&myMenuid=14002",
+                "disp_order": 2,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "14003",
+                "module_id": "project-plan-manage",
+                "parent_id": "14000",
+                "name": "计划管理",
+                "text": "计划管理",
+                "url": "/#/projectPlanManage?menuid=project-plan-manage&moduleid=project-plan-manage&myMenuid=14003",
+                "disp_order": 3,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "14004",
+                "module_id": "project-procurement-manage",
+                "parent_id": "14000",
+                "name": "采购管理",
+                "text": "采购管理",
+                "url": "/#/projectProcurementManage?menuid=project-procurement-manage&moduleid=project-procurement-manage&myMenuid=14004",
+                "disp_order": 4,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "14005",
+                "module_id": "project-contract-manage",
+                "parent_id": "14000",
+                "name": "合同管理",
+                "text": "合同管理",
+                "url": "/#/projectContractManage?menuid=project-contract-manage&moduleid=project-contract-manage&myMenuid=14005",
+                "disp_order": 5,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "14006",
+                "module_id": "project-implementation-manage",
+                "parent_id": "14000",
+                "name": "实施管理",
+                "text": "实施管理",
+                "url": "/#/projectImplementationManage?menuid=project-implementation-manage&moduleid=project-implementation-manage&myMenuid=14006",
+                "disp_order": 6,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "14007",
+                "module_id": "project-acceptance-manage",
+                "parent_id": "14000",
+                "name": "验收管理",
+                "text": "验收管理",
+                "url": "/#/projectAcceptanceManage?menuid=project-acceptance-manage&moduleid=project-acceptance-manage&myMenuid=14007",
+                "disp_order": 7,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "14008",
+                "module_id": "project-payment-manage",
+                "parent_id": "14000",
+                "name": "支付管理",
+                "text": "支付管理",
+                "url": "/#/projectPaymentManage?menuid=project-payment-manage&moduleid=project-payment-manage&myMenuid=14008",
+                "disp_order": 8,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              }
+            ]
+          },
+          {
+            "id": "10000",
+            "module_id": "10000",
+            "parent_id": "0",
+            "name": "配置管理",
+            "text": "配置管理",
+            "url": null,
+            "disp_order": 10,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "4001",
+                "module_id": "hr-institution-manage",
+                "parent_id": "10000",
+                "name": "内设机构管理",
+                "text": "内设机构管理",
+                "url": "/#/institutionManage?menuid=hr-institution-manage&moduleid=hr-institution-manage&myMenuid=4001",
+                "disp_order": 2,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "3001",
+                "module_id": "salary-information-manage",
+                "parent_id": "10000",
+                "name": "信息项管理",
+                "text": "信息项管理",
+                "url": "/#/informationManage?menuid=salary-information-manage&moduleid=salary-information-manage&myMenuid=3001",
+                "disp_order": 3,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "3002",
+                "module_id": "salary-information-collect",
+                "parent_id": "10000",
+                "name": "信息项采集",
+                "text": "信息项采集",
+                "url": "/#/informationCollect?menuid=salary-information-collect&moduleid=salary-information-collect&myMenuid=3002",
+                "disp_order": 4,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "3005",
+                "module_id": "salary-configuration",
+                "parent_id": "10000",
+                "name": "标准工资项配置",
+                "text": "标准工资项配置",
+                "url": "/#/salaryConfiguration?menuid=salary-configuration&moduleid=salary-configuration&myMenuid=3005",
+                "disp_order": 5,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "9001",
+                "module_id": "attendance-config",
+                "parent_id": "10000",
+                "name": "考勤时间配置",
+                "text": "考勤时间配置",
+                "url": "/#/attendanceConfig?menuid=attendance-config&moduleid=attendance-config&myMenuid=9001",
+                "disp_order": 6,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "8001",
+                "module_id": "vacation-config",
+                "parent_id": "10000",
+                "name": "请休假配置",
+                "text": "请休假配置",
+                "url": "/#/leaveVacationConfig?menuid=vacation-config&moduleid=vacation-config&myMenuid=8001",
+                "disp_order": 7,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "11001",
+                "module_id": "kpi-config",
+                "parent_id": "10000",
+                "name": "考核配置",
+                "text": "考核配置",
+                "url": "/#/kpiConfig?menuid=kpi-config&moduleid=kpi-config&myMenuid=11001",
+                "disp_order": 8,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "5002",
+                "module_id": "asset-configuration",
+                "parent_id": "10000",
+                "name": "固定资产配置",
+                "text": "固定资产配置",
+                "url": "/#/assetConfiguration?menuid=asset-configuration&moduleid=asset-configuration&myMenuid=5002",
+                "disp_order": 9,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "6001",
+                "module_id": "meeting-room-manage",
+                "parent_id": "10000",
+                "name": "会议室管理",
+                "text": "会议室管理",
+                "url": "/#/meetingRoomManage?menuid=meeting-room-manage&moduleid=meeting-room-manage&myMenuid=6001",
+                "disp_order": 10,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "10001",
+                "module_id": "config-system",
+                "parent_id": "10000",
+                "name": "系统参数配置",
+                "text": "系统参数配置",
+                "url": "/#/systemConfig?menuid=config-system&moduleid=config-system&myMenuid=10001",
+                "disp_order": 12,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "10002",
+                "module_id": "config-element",
+                "parent_id": "10000",
+                "name": "要素配置",
+                "text": "要素配置",
+                "url": "/#/elementConfig?menuid=config-element&moduleid=config-element&myMenuid=10002",
+                "disp_order": 13,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "90002",
+                "module_id": "annualFundPool",
+                "parent_id": "10000",
+                "name": "年度资金池配置",
+                "text": "年度资金池配置",
+                "url": "/#/annualFundPool?menuid=annualFundPool&moduleid=annualFundPool&myMenuid=90002",
+                "disp_order": 15,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              },
+              {
+                "id": "211653124",
+                "module_id": "sys-caic-auth",
+                "parent_id": "10000",
+                "name": "权限配置",
+                "text": "权限配置",
+                "url": "/#/caicAuth?menuid=sys-caic-auth&moduleid=sys-caic-auth&myMenuid=211653124",
+                "disp_order": 14,
+                "open_type": "1",
+                "server_code": null,
+                "is_visible": 1,
+                "children": null
+              }
+            ]
+          },
+          {
+            "id": "15000",
+            "module_id": "15000",
+            "parent_id": "0",
+            "name": "统计分析",
+            "text": "统计分析",
+            "url": null,
+            "disp_order": 11,
+            "open_type": null,
+            "server_code": null,
+            "is_visible": 1,
+            "children": [
+              {
+                "id": "15100",
+                "module_id": "15100",
+                "parent_id": "15000",
+                "name": "人事管理",
+                "text": "人事管理",
+                "url": null,
+                "disp_order": 1,
+                "open_type": null,
+                "server_code": null,
+                "is_visible": 1,
+                "children": [
+                  {
+                    "id": "15101",
+                    "module_id": "analysis-personnel-detail",
+                    "parent_id": "15100",
+                    "name": "人事明细",
+                    "text": "人事明细",
+                    "url": "/#/personnelDetail?menuid=analysis-personnel-detail&moduleid=analysis-personnel-detail&myMenuid=15101",
+                    "disp_order": 1,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "15102",
+                    "module_id": "analysis-personnel-summary",
+                    "parent_id": "15100",
+                    "name": "人事汇总",
+                    "text": "人事汇总",
+                    "url": "/#/personnelSummary?menuid=analysis-personnel-summary&moduleid=analysis-personnel-summary&myMenuid=15102",
+                    "disp_order": 2,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "15103",
+                    "module_id": "analysis-personnel-analysis",
+                    "parent_id": "15100",
+                    "name": "人事分析",
+                    "text": "人事分析",
+                    "url": "/#/personnelAnalysis?menuid=analysis-personnel-analysis&moduleid=analysis-personnel-analysis&myMenuid=15103",
+                    "disp_order": 3,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "15104",
+                    "module_id": "analysis-operations-detail",
+                    "parent_id": "15100",
+                    "name": "运维人员明细",
+                    "text": "运维人员明细",
+                    "url": "/#/operationsDetail?menuid=analysis-operations-detail&moduleid=analysis-operations-detail&myMenuid=15104",
+                    "disp_order": 4,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "15200",
+                "module_id": "15200",
+                "parent_id": "15000",
+                "name": "考勤管理",
+                "text": "考勤管理",
+                "url": null,
+                "disp_order": 2,
+                "open_type": null,
+                "server_code": null,
+                "is_visible": 1,
+                "children": [
+                  {
+                    "id": "15210",
+                    "module_id": "15210",
+                    "parent_id": "15200",
+                    "name": "出勤报表",
+                    "text": "出勤报表",
+                    "url": null,
+                    "disp_order": 1,
+                    "open_type": null,
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": [
+                      {
+                        "id": "15211",
+                        "module_id": "analysis-attendance-detail",
+                        "parent_id": "15210",
+                        "name": "考勤明细",
+                        "text": "考勤明细",
+                        "url": "/#/attendanceDetail?menuid=analysis-attendance-detail&moduleid=analysis-attendance-detail&myMenuid=15211",
+                        "disp_order": 1,
+                        "open_type": "1",
+                        "server_code": null,
+                        "is_visible": 1,
+                        "children": null
+                      },
+                      {
+                        "id": "15212",
+                        "module_id": "analysis-attendance-summary",
+                        "parent_id": "15210",
+                        "name": "考勤汇总",
+                        "text": "考勤汇总",
+                        "url": "/#/attendanceSummary?menuid=analysis-attendance-summary&moduleid=analysis-attendance-summary&myMenuid=15212",
+                        "disp_order": 2,
+                        "open_type": "1",
+                        "server_code": null,
+                        "is_visible": 1,
+                        "children": null
+                      }
+                    ]
+                  },
+                  {
+                    "id": "15220",
+                    "module_id": "15220",
+                    "parent_id": "15200",
+                    "name": "请休假报表",
+                    "text": "请休假报表",
+                    "url": null,
+                    "disp_order": 2,
+                    "open_type": null,
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": [
+                      {
+                        "id": "15221",
+                        "module_id": "analysis-leave-detail",
+                        "parent_id": "15220",
+                        "name": "请休假明细",
+                        "text": "请休假明细",
+                        "url": "/#/leaveDetail?menuid=analysis-leave-detail&moduleid=analysis-leave-detail&myMenuid=15221",
+                        "disp_order": 1,
+                        "open_type": "1",
+                        "server_code": null,
+                        "is_visible": 1,
+                        "children": null
+                      },
+                      {
+                        "id": "15222",
+                        "module_id": "analysis-leave-summary",
+                        "parent_id": "15220",
+                        "name": "请休假汇总",
+                        "text": "请休假汇总",
+                        "url": "/#/leaveSummary?menuid=analysis-leave-summary&moduleid=analysis-leave-summary&myMenuid=15222",
+                        "disp_order": 2,
+                        "open_type": "1",
+                        "server_code": null,
+                        "is_visible": 1,
+                        "children": null
+                      }
+                    ]
+                  },
+                  {
+                    "id": "15231",
+                    "module_id": "analysis-attendance-statistics",
+                    "parent_id": "15200",
+                    "name": "出勤统计",
+                    "text": "出勤统计",
+                    "url": "/#/attendanceStatistics?menuid=analysis-attendance-statistics&moduleid=analysis-attendance-statistics&myMenuid=15231",
+                    "disp_order": 3,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "15232",
+                    "module_id": "analysis-attendance-analysis",
+                    "parent_id": "15200",
+                    "name": "出勤分析",
+                    "text": "出勤分析",
+                    "url": "/#/attendanceAnalysis?menuid=analysis-attendance-analysis&moduleid=analysis-attendance-analysis&myMenuid=15232",
+                    "disp_order": 4,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "15235",
+                    "module_id": "operationAttendance",
+                    "parent_id": "15200",
+                    "name": "运维人员打卡记录",
+                    "text": "运维人员打卡记录",
+                    "url": "/#/operationAttendance?menuid=operationAttendance&moduleid=operationAttendance&myMenuid=15235",
+                    "disp_order": 5,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "15300",
+                "module_id": "15300",
+                "parent_id": "15000",
+                "name": "考核报表",
+                "text": "考核报表",
+                "url": null,
+                "disp_order": 3,
+                "open_type": null,
+                "server_code": null,
+                "is_visible": 1,
+                "children": [
+                  {
+                    "id": "15301",
+                    "module_id": "analysis-kpi-detail",
+                    "parent_id": "15300",
+                    "name": "考核明细",
+                    "text": "考核明细",
+                    "url": "/#/kpiDetail?menuid=analysis-kpi-detail&moduleid=analysis-kpi-detail&myMenuid=15301",
+                    "disp_order": 1,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "15302",
+                    "module_id": "analysis-kpi-summary",
+                    "parent_id": "15300",
+                    "name": "考核汇总",
+                    "text": "考核汇总",
+                    "url": "/#/kpiSummary?menuid=analysis-kpi-summary&moduleid=analysis-kpi-summary&myMenuid=15302",
+                    "disp_order": 2,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "15400",
+                "module_id": "15400",
+                "parent_id": "15000",
+                "name": "工资报表",
+                "text": "工资报表",
+                "url": null,
+                "disp_order": 3,
+                "open_type": null,
+                "server_code": null,
+                "is_visible": 1,
+                "children": [
+                  {
+                    "id": "15401",
+                    "module_id": "analysis-salary-report",
+                    "parent_id": "15000",
+                    "name": "工资分析报表",
+                    "text": "工资分析报表",
+                    "url": "/#/salaryReport?menuid=analysis-salary-report&moduleid=analysis-salary-report&myMenuid=15401",
+                    "disp_order": 4,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  },
+                  {
+                    "id": "15402",
+                    "module_id": "analysis-bonus-pool-report",
+                    "parent_id": "15000",
+                    "name": "奖金池报表",
+                    "text": "奖金池报表",
+                    "url": "/#/bonusPoolReport?menuid=analysis-bonus-pool-report&moduleid=analysis-bonus-pool-report&myMenuid=15402",
+                    "disp_order": 5,
+                    "open_type": "1",
+                    "server_code": null,
+                    "is_visible": 1,
+                    "children": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "fieldTypes": {
+          "id": "2",
+          "module_id": "2",
+          "parent_id": "2",
+          "name": "2",
+          "text": "2",
+          "url": "2",
+          "disp_order": "2",
+          "open_type": "2",
+          "server_code": "2",
+          "is_visible": "2",
+          "children": "2"
+        }
+      },
+      "responseSize": 15,
+      "duration": 51,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "200",
+          "validateType": 3,
+          "passed": true,
+          "message": "通过"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "操作成功",
+          "validateType": 3,
+          "passed": true,
+          "message": "通过"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "seq": 2,
+      "apiName": "unread.count",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/message/unread/count",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:08 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        },
+        {
+          "expression": "responseBody.data.total",
+          "expectValue": "0",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 0，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 3,
+      "apiName": "workbench.quick-entries",
+      "method": "GET",
+      "url": "http://172.16.21.242:8080/caic-server/workbench/quick-entries",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:08 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 4,
+      "apiName": "file_template.page",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/file_template/page",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "nowPage": 1,
+        "nowPageNo": 5
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:08 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        },
+        {
+          "expression": "responseBody.data.total",
+          "expectValue": "0",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 0，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 5,
+      "apiName": "rule_regulation.page",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/rule_regulation/page",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "nowPage": 1,
+        "nowPageNo": 5
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:08 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 35,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        },
+        {
+          "expression": "responseBody.data.total",
+          "expectValue": "0",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 0，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 6,
+      "apiName": "todo.aggregate",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/workbench/todo/aggregate",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "pageNo": 1,
+        "pageSize": 3
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:09 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 32,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 7,
+      "apiName": "user.my-info",
+      "method": "GET",
+      "url": "http://172.16.21.242:8080/caic-server/user/my-info",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:09 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 30,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "35007",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 35007，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "【人员信息】不存在",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 【人员信息】不存在，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 8,
+      "apiName": "report.lateOrEarlyCount",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/attendance/report/lateOrEarlyCount",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "year": 2026,
+        "month": 7
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:09 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 35,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 9,
+      "apiName": "score.myEvaluate",
+      "method": "GET",
+      "url": "http://172.16.21.242:8080/caic-server/assessment/score/myEvaluate?assessmentTypeCode=1",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:09 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 32,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 10,
+      "apiName": "leaveApplication.queryApplicationByApproveStatus",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/attendance/leaveApplication/queryApplicationByApproveStatus?pageIndex=1&pageSize=10",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:10 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        },
+        {
+          "expression": "responseBody.data.total",
+          "expectValue": "0",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 0，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 11,
+      "apiName": "message.list",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/message/list",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "pageNum": 1,
+        "pageSize": 5
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:10 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 31,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        },
+        {
+          "expression": "responseBody.data.total",
+          "expectValue": "0",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 0，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 12,
+      "apiName": "report.monthly-calendar",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/attendance/report/monthly-calendar",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "year": 2026,
+        "month": 7
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:10 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 30,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "35007",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 35007，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "【人员信息】不存在",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 【人员信息】不存在，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 13,
+      "apiName": "leave-type.list-by-type",
+      "method": "GET",
+      "url": "http://172.16.21.242:8080/caic-server/attendance/leave-type/list-by-type?type=2",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:10 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 14,
+      "apiName": "runtime.config",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/message/runtime/config",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:11 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 35,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 15,
+      "apiName": "realtime.ticket",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/message/realtime/ticket",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:11 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 16,
+      "apiName": "leaveApplication.getAnnualLeaveQuota",
+      "method": "GET",
+      "url": "http://172.16.21.242:8080/caic-server/attendance/leaveApplication/getAnnualLeaveQuota?leaveTypeId=00s3m03skhxu454sp00000bp399z3pc7&isbx=2",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:11 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 31,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "34001",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 34001，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "用户信息不存在，无法创建年假额度",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 用户信息不存在，无法创建年假额度，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 17,
+      "apiName": "userStatus.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/userStatus/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:11 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 35,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 18,
+      "apiName": "personnelNature.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/personnelNature/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:12 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 30,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 19,
+      "apiName": "user.dynamic-items",
+      "method": "GET",
+      "url": "http://172.16.21.242:8080/caic-server/user/dynamic-items?natureId=00s57j8651bz1rxsy00000tthvzmxuuv&menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:12 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 31,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 20,
+      "apiName": "field-length.query-by-scene",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/field-length/query-by-scene?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "sceneCode": "hrUserPersonalInfo",
+        "fields": [
+          "user_name",
+          "used_name",
+          "id_card_no",
+          "sex_ele_id",
+          "nation_ele_id",
+          "native_place_text",
+          "birth_place_text",
+          "birthday",
+          "join_party_time",
+          "political_status_ele_id",
+          "leave_end_time",
+          "leave_work_time",
+          "leave_whereabouts",
+          "user_status_ele_id",
+          "first_education_ele_id",
+          "first_education_school",
+          "first_education_degree_ele_id",
+          "first_education_degree_time",
+          "first_education_major_ele_id",
+          "highest_education_major_ele_id",
+          "highest_education_ele_id",
+          "highest_education_school",
+          "highest_education_degree_ele_id",
+          "highest_education_degree_time",
+          "dept_ele_id",
+          "no",
+          "position_ele_id",
+          "join_work_time",
+          "join_ministry_time",
+          "join_dept_time",
+          "current_position_date",
+          "current_position_rank_date",
+          "landline_phone",
+          "phone",
+          "sort",
+          "real_seniority",
+          "seniority",
+          "person_type_ele_id",
+          "position_type_ele_id",
+          "is_grading_ele_id",
+          "professional_title_ele_id",
+          "professional_title_rank_ele_id",
+          "professional_title_time",
+          "position_rank_ele_id",
+          "embody_post_rank_ele_id",
+          "salary_rank_ele_id",
+          "position_time",
+          "position_time_rank_ele_id",
+          "description"
+        ]
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:12 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 32,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 21,
+      "apiName": "educationDegree.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/educationDegree/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:12 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 22,
+      "apiName": "education.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/education/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:13 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 32,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 23,
+      "apiName": "sex.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/sex/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:13 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 35,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 24,
+      "apiName": "nation.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/nation/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:13 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 25,
+      "apiName": "politicalStatus.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/politicalStatus/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:13 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 35,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 26,
+      "apiName": "dept.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/dept/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:14 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 31,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 27,
+      "apiName": "position.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/position/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:14 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 28,
+      "apiName": "positionType.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/positionType/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:14 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 29,
+      "apiName": "major.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/major/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:14 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 35,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 30,
+      "apiName": "personType.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/personType/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:14 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 35,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 31,
+      "apiName": "professionalTitle.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/professionalTitle/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:15 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 32,
+      "apiName": "is.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/is/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:15 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 32,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 33,
+      "apiName": "positionRank.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/positionRank/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:15 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 34,
+      "apiName": "embodyPostRank.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/embodyPostRank/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:15 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 35,
+      "apiName": "salaryRank.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/salaryRank/eleTree?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:16 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 36,
+      "apiName": "user.dynamic-page",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/user/dynamic-page?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "natureId": "00s57j8651bz1rxsy00000tthvzmxuuv",
+        "nowPage": 1,
+        "nowPageNo": 20
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:16 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 38,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        },
+        {
+          "expression": "responseBody.data.total",
+          "expectValue": "144",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 144，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 37,
+      "apiName": "item.query",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/item/query?menuid=hr-personal-information-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "tabId": "1",
+        "menuId": "hr-personal-information-manage"
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:16 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 35,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 38,
+      "apiName": "retire.count-by-status",
+      "method": "GET",
+      "url": "http://172.16.21.242:8080/caic-server/retire/count-by-status?menuid=hr-retirement-manage",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:16 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 39,
+      "apiName": "politicalStatus.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/politicalStatus/eleTree?menuid=hr-retirement-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:17 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 40,
+      "apiName": "sex.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/sex/eleTree?menuid=hr-retirement-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:17 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 41,
+      "apiName": "user.query",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/retire/user/query?menuid=hr-retirement-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "nowPage": 1,
+        "nowPageNo": 20,
+        "userStatusEleCodes": [
+          "000"
+        ]
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:17 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 42,
+      "apiName": "item.query",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/item/query?menuid=hr-retirement-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "tabId": "1",
+        "menuId": "hr-retirement-manage"
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:17 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 38,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 43,
+      "apiName": "private_passport.page",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/private_passport/page?menuid=hr-passport-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "userName": "",
+        "nowPage": 1,
+        "nowPageNo": 20
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:18 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 30,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        },
+        {
+          "expression": "responseBody.data.total",
+          "expectValue": "60",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 60，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 44,
+      "apiName": "item.query",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/item/query?menuid=hr-passport-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "menuId": "hr-passport-manage"
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:18 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 31,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 45,
+      "apiName": "operation_users.page",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/operation_users/page?menuid=hr-operations-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "operationUserName": "",
+        "nowPage": 1,
+        "nowPageNo": 20
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:18 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 32,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        },
+        {
+          "expression": "responseBody.data.total",
+          "expectValue": "30",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 30，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 46,
+      "apiName": "item.query",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/item/query?menuid=hr-operations-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "menuId": "hr-operations-manage"
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:18 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 47,
+      "apiName": "dept.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/dept/eleTree?menuid=hr-operations-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:19 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 36,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 48,
+      "apiName": "contractTermType.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/contractTermType/eleTree?menuid=hr-operations-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:19 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 36,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 49,
+      "apiName": "operationStatus.eleTree",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/element/operationStatus/eleTree?menuid=hr-operations-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:19 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 33,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 50,
+      "apiName": "list.query",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/dept/list/query?menuid=hr-operations-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "isBusinessDept": 0
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:19 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 51,
+      "apiName": "operation_users.show",
+      "method": "GET",
+      "url": "http://172.16.21.242:8080/caic-server/operation_users/show?menuid=hr-operations-manage&id=027657348fcc4fbaaef77670f34c824b",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": "",
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:20 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 31,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        },
+        {
+          "expression": "responseBody.data.createUser",
+          "expectValue": "000001",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 000001，实际 -"
+        },
+        {
+          "expression": "responseBody.data.createTime",
+          "expectValue": "2026-06-16T12:00:00",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 2026-06-16T12:00:00，实际 -"
+        },
+        {
+          "expression": "responseBody.data.updateUser",
+          "expectValue": "000001",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 000001，实际 -"
+        },
+        {
+          "expression": "responseBody.data.updateTime",
+          "expectValue": "2026-06-16T12:00:00",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 2026-06-16T12:00:00，实际 -"
+        },
+        {
+          "expression": "responseBody.data.isDeleted",
+          "expectValue": "2",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 2，实际 -"
+        },
+        {
+          "expression": "responseBody.data.operationUserId",
+          "expectValue": "027657348fcc4fbaaef77670f34c824b",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 027657348fcc4fbaaef77670f34c824b，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 52,
+      "apiName": "attachment.upload",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/attachment/upload?menuid=hr-operations-manage",
+      "requestHeaders": {
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}",
+        "Content-Type": "application/json"
+      },
+      "requestBody": {},
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:20 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 32,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    },
+    {
+      "seq": 53,
+      "apiName": "operation_users.store",
+      "method": "POST",
+      "url": "http://172.16.21.242:8080/caic-server/operation_users/store?menuid=hr-operations-manage",
+      "requestHeaders": {
+        "Content-Type": "application/json;charset=utf-8",
+        "X-Requested-With": "XMLHttpRequest",
+        "Authorization": "Bearer ${1.responseBody.data.token}"
+      },
+      "requestBody": {
+        "deptEleId": "dept00",
+        "deptEleCode": "00",
+        "deptEleName": "中心领导",
+        "accountNo": "00001",
+        "operationUserName": "张三",
+        "idCardNo": "370911199306085610",
+        "telephone": "",
+        "officeLocation": "",
+        "operationStatusEleId": "",
+        "residentStatus": "1",
+        "reportingTime": "2026-07-22",
+        "departureTime": "2026-07-22",
+        "operationUnit": "",
+        "operationContent": "",
+        "remarks": "",
+        "contractList": [],
+        "attachmentList": [
+          {
+            "originalName": "知识星球.png",
+            "fileName": "operation_user/2d0264e47c594ca8a565f913bffe008c_知识星球.png",
+            "bizType": "operation_user",
+            "fileSize": "33778",
+            "fileSuffix": "png",
+            "filePath": "operation_user/2d0264e47c594ca8a565f913bffe008c_知识星球.png",
+            "storageType": "2",
+            "fileUrl": "operation_user/2d0264e47c594ca8a565f913bffe008c_知识星球.png",
+            "remark": "",
+            "fileMd5": "051d055f6c9fac2de9b8789b79aa0dd2"
+          }
+        ]
+      },
+      "responseStatus": 401,
+      "responseHeaders": {
+        "server": "nginx/1.30.1",
+        "date": "Wed, 22 Jul 2026 05:53:20 GMT",
+        "content-type": "application/json;charset=UTF-8",
+        "content-length": "87",
+        "connection": "close",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-xss-protection": "1; mode=block",
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "pragma": "no-cache",
+        "expires": "0",
+        "x-frame-options": "DENY"
+      },
+      "responseBody": {
+        "msg": "Token无效或已过期，请重新登录",
+        "code": 401,
+        "data": "/caic-web/login"
+      },
+      "responseSize": 15,
+      "duration": 34,
+      "error": null,
+      "assertions": [
+        {
+          "expression": "responseBody.statusCode",
+          "expectValue": "200",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 200，实际 -"
+        },
+        {
+          "expression": "responseBody.message",
+          "expectValue": "操作成功",
+          "actualValue": "-",
+          "validateType": 3,
+          "passed": false,
+          "message": "期望 操作成功，实际 -"
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "timestamp": "2026-07-22T05:53:19.804Z",
+  "environment": "Auto-172-16-21-242-8080",
+  "apiCount": 54
+}

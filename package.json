@@ -1,0 +1,11 @@
+{
+  "name": "qm-testing",
+  "version": "1.0.0",
+  "description": "QM_Testing - 浏览器录制API请求，多Agent流水线自动化生成API测试用例",
+  "private": true,
+  "scripts": {
+    "dev": "cd desktop && npm run dev",
+    "build": "cd desktop && npm run build",
+    "pack": "cd desktop && npm run pack"
+  }
+}

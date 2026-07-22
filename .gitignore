@@ -1,0 +1,11 @@
+node_modules/
+dist-electron/
+out/
+*.log
+.DS_Store
+Desktop.ini
+.env
+.env.local
+__pycache__/
+*.pyc
+desktop/logs/

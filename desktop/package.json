@@ -1,0 +1,42 @@
+{
+  "name": "qm-testing-desktop",
+  "version": "1.0.0",
+  "description": "QM_Testing 桌面端 - 多Agent API测试用例流水线",
+  "main": "main/main.js",
+  "scripts": {
+    "dev": "chcp 65001>NUL && electron .",
+    "build": "electron-builder",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win --mac --linux"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.qm-testing.desktop",
+    "productName": "QM-Testing",
+    "directories": {
+      "output": "../dist-electron"
+    },
+    "files": [
+      "main/**/*",
+      "agents/**/*",
+      "models/**/*",
+      "piplines/**/*",
+      "platform-connectors/**/*",
+      "renderer/**/*",
+      "../node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
