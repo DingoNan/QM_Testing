@@ -7,6 +7,7 @@ const { BaseAgent } = require('./base-agent');
 const { CaseVo } = require('../models/CaseVo');
 const { TestDataPool } = require('../models/TestDataPool');
 const path = require('path');
+const querystring = require('querystring');
 
 const logger = require('../core/logger');
 const log = logger.create('Assembler');
@@ -93,6 +94,11 @@ class AssemblerAgent extends BaseAgent {
       };
     }
 
+    // ========== Step: 请求体格式检测与 Content-Type 自动补全 ==========
+    for (const api of caseVo.apiVos) {
+      this._normalizeRequestBody(api);
+    }
+
     this._updateProgress(60, 'CaseVo 拼装完成');
     log.info('CaseVo 用例拼装完成');
 
@@ -124,6 +130,71 @@ class AssemblerAgent extends BaseAgent {
         caseSave: casePath,
       },
     };
+  }
+
+  /**
+   * 规范化请求体：form-urlencoded 解析 + Content-Type 补全 + Header 白名单
+   */
+  _normalizeRequestBody(api) {
+    const method = (api.apiMethod || 'GET').toUpperCase();
+    let headers = {};
+    if (typeof api.requestHeaders === 'string') {
+      try { headers = JSON.parse(api.requestHeaders); } catch { headers = {}; }
+    } else if (typeof api.requestHeaders === 'object' && api.requestHeaders) {
+      headers = { ...api.requestHeaders };
+    }
+
+    // 找到 Content-Type 头（不区分大小写）
+    const ctKey = Object.keys(headers).find(k => k.toLowerCase() === 'content-type');
+    const contentType = ctKey ? headers[ctKey] : '';
+
+    // 1. form-urlencoded 格式 body 解析
+    if (contentType.includes('x-www-form-urlencoded')) {
+      if (api.requestBody && typeof api.requestBody === 'string') {
+        try {
+          // 尝试解析 querystring 格式 → 对象
+          const parsed = querystring.parse(api.requestBody);
+          // 转成普通对象（避免 querystring 返回的键有 Prototype 污染）
+          const plainObj = {};
+          for (const [k, v] of Object.entries(parsed)) {
+            plainObj[k] = Array.isArray(v) ? v.join(',') : v;
+          }
+          // 保留字符串形式的原始 body（用于引用替换），同时存 parsedBody
+          api._rawBody = api.requestBody;
+          api.requestBody = plainObj;
+          log.info(`${api.apiMethod} ${api.apiUrl}: form-urlencoded body 已解析为对象`);
+        } catch (e) {
+          log.warn(`${api.apiMethod} ${api.apiUrl}: form-urlencoded 解析失败: ${e.message}`);
+        }
+      }
+    }
+
+    // 2. 自动补全 Content-Type（POST/PUT/PATCH 且无 Content-Type 时）
+    if (['POST', 'PUT', 'PATCH'].includes(method) && !ctKey && api.requestBody) {
+      const bodyStr = typeof api.requestBody === 'object'
+        ? JSON.stringify(api.requestBody)
+        : String(api.requestBody);
+      if (bodyStr.startsWith('{') || bodyStr.startsWith('[')) {
+        headers['Content-Type'] = 'application/json';
+        log.info(`${api.apiMethod} ${api.apiUrl}: 自动补全 Content-Type: application/json`);
+      }
+    }
+
+    // 3. Header 白名单：只保留必要字段
+    const WHITELIST_PREFIXES = [
+      'auth', 'token', 'content-type', 'content-length', 'accept',
+      'x-requested-with', 'x-csrf-token', 'x-auth-token',
+      'authorization', 'cookie', 'set-cookie', 'referer',
+      'origin', 'pagecode', 'appcode',
+    ];
+    const filteredHeaders = {};
+    for (const [key, value] of Object.entries(headers)) {
+      const keyLower = key.toLowerCase();
+      if (WHITELIST_PREFIXES.some(p => keyLower.startsWith(p) || keyLower.includes(p))) {
+        filteredHeaders[key] = value;
+      }
+    }
+    api.requestHeaders = JSON.stringify(filteredHeaders);
   }
 
   /**

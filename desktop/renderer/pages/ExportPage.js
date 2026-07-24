@@ -3,7 +3,12 @@
 const ExportPage = () => {
   const [caseVo, setCaseVo] = React.useState(null);
   const [exporting, setExporting] = React.useState(false);
+  const [importing, setImporting] = React.useState(false);
   const [outDir, setOutDir] = React.useState('');
+  // 平台导入表单
+  const [platformUrl, setPlatformUrl] = React.useState('');
+  const [apiToken, setApiToken] = React.useState('');
+  const [importResult, setImportResult] = React.useState(null);
 
   // 获取 case-save.json 路径
   const getCasePath = () => {
@@ -93,6 +98,31 @@ const ExportPage = () => {
     setExporting(false);
   };
 
+  const handlePlatformImport = async () => {
+    if (!platformUrl) { window.appApi.showToast('请输入平台地址', 'warning'); return; }
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const data = await readCaseData();
+      if (!data) {
+        window.appApi.showToast('没有可导入的用例数据', 'warning');
+        setImporting(false);
+        return;
+      }
+      const result = await window.appApi.platformImportCase({ caseVo: data, platformUrl, apiToken });
+      setImportResult(result);
+      if (result.success) {
+        window.appApi.showToast('平台导入成功! HTTP ' + result.statusCode, 'success');
+      } else {
+        window.appApi.showToast('导入失败: HTTP ' + result.statusCode + ' ' + (result.error || ''), 'error');
+      }
+    } catch (e) {
+      setImportResult({ success: false, error: e.message });
+      window.appApi.showToast('导入失败: ' + e.message, 'error');
+    }
+    setImporting(false);
+  };
+
   return React.createElement('div', null, [
     React.createElement('div', { className: 'page-header', key: 'h' },
       React.createElement('h2', { key: 't' }, '📤 导出 / 导入'),
@@ -153,18 +183,38 @@ const ExportPage = () => {
       }, '直接导入 MeterSphere 或兼容 API 测试平台。'),
       React.createElement('div', { className: 'form-group', key: 'url' },
         React.createElement('label', null, '平台地址'),
-        React.createElement('input', { placeholder: 'https://metersphere.example.com' }),
+        React.createElement('input', {
+          placeholder: 'https://metersphere.example.com/api/case/import',
+          value: platformUrl,
+          onChange: e => setPlatformUrl(e.target.value),
+          style: { width: '100%', padding: '6px 10px', borderRadius: 4, border: '1px solid var(--border)', fontSize: 13, background: 'var(--bg)', color: 'var(--text)' },
+        }),
       ),
       React.createElement('div', { className: 'form-group', key: 'token' },
         React.createElement('label', null, 'API Token'),
-        React.createElement('input', { type: 'password', placeholder: '输入平台 API Token' }),
+        React.createElement('input', {
+          type: 'password',
+          placeholder: '输入平台 API Token',
+          value: apiToken,
+          onChange: e => setApiToken(e.target.value),
+          style: { width: '100%', padding: '6px 10px', borderRadius: 4, border: '1px solid var(--border)', fontSize: 13, background: 'var(--bg)', color: 'var(--text)' },
+        }),
       ),
       React.createElement('button', {
         className: 'btn btn-primary',
-        disabled: true,
+        onClick: handlePlatformImport,
+        disabled: importing || !caseVo || !platformUrl,
         style: { marginTop: 4 },
         key: 'submit',
-      }, '⏳ 导入平台（开发中）'),
+      }, importing ? '导入中...' : '🚀 导入平台'),
+      // 导入结果
+      importResult && React.createElement('div', { key: 'result', style: { marginTop: 8, fontSize: 12 } }, [
+        React.createElement('span', {
+          style: { color: importResult.success ? '#27ae60' : '#e74c3c', fontWeight: 600 },
+        }, importResult.success ? '✅ 导入成功' : '❌ 导入失败'),
+        importResult.statusCode && React.createElement('span', { style: { marginLeft: 8 } }, 'HTTP ' + importResult.statusCode),
+        importResult.response && React.createElement('pre', { style: { marginTop: 4, maxHeight: 100, overflow: 'auto', fontSize: 11, background: 'var(--bg-secondary)', padding: 6, borderRadius: 4 } }, importResult.response),
+      ]),
     ]),
   ]);
 };

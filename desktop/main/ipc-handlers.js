@@ -16,6 +16,7 @@ const { LinkerAgent } = require('../agents/linker');
 const { EnvAnalyzerAgent } = require('../agents/env-analyzer');
 const { AssemblerAgent } = require('../agents/assembler');
 const { ReviewerAgent } = require('../agents/reviewer');
+const { SwaggerEnricherAgent } = require('../agents/swagger-enricher');
 const { Recording } = require('../models/Recording');
 const { Environment } = require('../models/Environment');
 const aiConfig = require('../core/ai-config');
@@ -475,6 +476,54 @@ function registerIpcHandlers(ipcMain, mainWindow) {
     return result.filePath;
   });
 
+  // 导入用例到第三方测试平台
+  ipcMain.handle('platform:importCase', async (event, { caseVo, platformUrl, apiToken }) => {
+    log.info('IPC: platform:importCase 开始');
+    try {
+      if (!caseVo || !platformUrl) {
+        return { success: false, error: '缺少用例数据或平台地址' };
+      }
+      const https = require('https');
+      const http = require('http');
+
+      const urlObj = new URL(platformUrl);
+      const fetcher = urlObj.protocol === 'https:' ? https : http;
+      const body = JSON.stringify(caseVo);
+
+      return new Promise((resolve) => {
+        const req = fetcher.request(platformUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(apiToken ? { 'Authorization': 'Bearer ' + apiToken } : {}),
+          },
+          timeout: 30000,
+        }, (res) => {
+          let data = '';
+          res.on('data', chunk => { data += chunk; });
+          res.on('end', () => {
+            log.info(`IPC: platform:importCase 完成, HTTP ${res.statusCode}`);
+            resolve({
+              success: res.statusCode >= 200 && res.statusCode < 300,
+              statusCode: res.statusCode,
+              response: data.substring(0, 500),
+            });
+          });
+        });
+        req.on('error', (e) => {
+          log.error(`IPC: platform:importCase 失败: ${e.message}`);
+          resolve({ success: false, error: e.message });
+        });
+        req.on('timeout', () => { req.destroy(); resolve({ success: false, error: '请求超时' }); });
+        req.write(body);
+        req.end();
+      });
+    } catch (e) {
+      log.error(`IPC: platform:importCase 失败: ${e.message}`);
+      return { success: false, error: e.message };
+    }
+  });
+
   // 保存环境配置
   ipcMain.handle('env:save', async (event, envConfig) => {
     const env = new Environment(envConfig);
@@ -629,7 +678,7 @@ function registerIpcHandlers(ipcMain, mainWindow) {
   // ============ 回归验证 ============
 
   // 执行回归验证
-  ipcMain.handle('regression:run', async (event, { outDir, caseVo: customCaseVo }) => {
+  ipcMain.handle('regression:run', async (event, { outDir, caseVo: customCaseVo, staticMode }) => {
     if (!outDir || !fs.existsSync(outDir)) {
       return { success: false, error: '输出目录不存在' };
     }
@@ -664,6 +713,7 @@ function registerIpcHandlers(ipcMain, mainWindow) {
         data: caseVo,
         envConfig,
         linkedRecords,
+        staticMode: !!staticMode,
       });
 
       return { success: true, ...result };
@@ -1037,6 +1087,31 @@ function registerIpcHandlers(ipcMain, mainWindow) {
       return { success: true, ...result };
     } catch (e) {
       log.error(`IPC: review:optimizeSingle 失败: ${e.message}`);
+      return { success: false, error: e.message };
+    }
+  });
+
+  // Swagger apiName 增强
+  ipcMain.handle('review:swaggerEnrich', async (event, { outDir, caseVo, swaggerUrl }) => {
+    log.info('IPC: review:swaggerEnrich 开始');
+    try {
+      const enricher = new SwaggerEnricherAgent({ outDir });
+      const result = await enricher.execute({ caseVo, swaggerUrl });
+      log.info(`IPC: review:swaggerEnrich 完成, ${result.message}`);
+      return { success: true, ...result };
+    } catch (e) {
+      log.error(`IPC: review:swaggerEnrich 失败: ${e.message}`);
+      return { success: false, error: e.message };
+    }
+  });
+
+  // 引用断裂检查
+  ipcMain.handle('review:checkBrokenReferences', async (event, { caseVo, applyItems }) => {
+    try {
+      const reviewer = new ReviewerAgent({});
+      const result = reviewer._checkBrokenReferences(caseVo, applyItems);
+      return { success: true, ...result };
+    } catch (e) {
       return { success: false, error: e.message };
     }
   });

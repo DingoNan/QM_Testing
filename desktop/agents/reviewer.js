@@ -882,6 +882,8 @@ ${apiFindings.map(f => `- [${f.severity}] ${f.ruleName}: ${f.message}`).join('\n
           search: item.actionPayload.search,
           replace: item.actionPayload.replace,
         });
+      } else if (item.action === 'delete_api') {
+        toDelete.add(item.apiIndex);
       }
     }
 
@@ -939,6 +941,76 @@ ${apiFindings.map(f => `- [${f.severity}] ${f.ruleName}: ${f.message}`).join('\n
     }
 
     return caseVo;
+  }
+
+  /**
+   * 检查引用断裂：指向已删除 seq 的 ${seq.xxx} 引用
+   * @returns {{ broken: Array<{apiIndex: number, apiName: string, ref: string}>, manifest: Array<{apiIndex: number, action: string, label: string}> }}
+   */
+  _checkBrokenReferences(caseVo, applyItems) {
+    if (!caseVo?.apiVos) return { broken: [], manifest: [] };
+    const apis = caseVo.apiVos;
+
+    // 收集被删除的 apiIndex
+    const toDelete = new Set();
+    for (const item of applyItems || []) {
+      if (item.action === 'delete_api') {
+        toDelete.add(item.apiIndex);
+      }
+    }
+
+    // 收集将要执行的替换
+    const replacements = new Map(); // apiIndex -> [{ search, replace }]
+    for (const item of applyItems || []) {
+      if (item.action === 'replace_value' && item.actionPayload) {
+        if (!replacements.has(item.apiIndex)) replacements.set(item.apiIndex, []);
+        replacements.get(item.apiIndex).push(item.actionPayload);
+      }
+    }
+
+    const broken = [];
+    const manifest = [];
+
+    // 对所有接口扫描引用表达式
+    const scanRefs = (str, apiIdx, apiName) => {
+      if (!str || typeof str !== 'string') return;
+      const refRegex = /\$\{?(?:seq\.)?(\d+)(?:\.)/g;
+      let match;
+      while ((match = refRegex.exec(str)) !== null) {
+        const refNum = parseInt(match[1], 10);
+        const refIdx = refNum - 1;
+        if (toDelete.has(refIdx)) {
+          broken.push({ apiIndex: apiIdx, apiName, ref: match[0], refSeq: refNum });
+        }
+      }
+    };
+
+    for (let i = 0; i < apis.length; i++) {
+      const api = apis[i];
+      const name = api.apiName || api.apiUrl || `接口${i + 1}`;
+      scanRefs(api.apiUrl, i, name);
+      if (typeof api.requestBody === 'string') {
+        scanRefs(api.requestBody, i, name);
+      } else if (api.requestBody && typeof api.requestBody === 'object') {
+        scanRefs(JSON.stringify(api.requestBody), i, name);
+      }
+      // 记录修改清单中的项
+      if (replacements.has(i)) {
+        manifest.push({ apiIndex: i, action: 'replace_value', label: `替换 ${name} 的值` });
+      }
+      if (toDelete.has(i)) {
+        manifest.push({ apiIndex: i, action: 'delete_api', label: `删除 ${name}` });
+      }
+    }
+
+    // 找出引用断裂集中在哪些源接口
+    const sourceMap = {};
+    for (const b of broken) {
+      if (!sourceMap[b.refSeq]) sourceMap[b.refSeq] = [];
+      sourceMap[b.refSeq].push(b.apiIndex);
+    }
+
+    return { broken, manifest, sourceMap };
   }
 }
 

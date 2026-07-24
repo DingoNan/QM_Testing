@@ -65,6 +65,7 @@ class RegressionRunnerAgent extends BaseAgent {
     const dataPoolConfig = input.dataPoolConfig || caseVo.dataPool || null;
     const chainRules = input.chainRules || caseVo.chainRules || [];
     const iterationMode = input.iterationMode || caseVo.iterationMode || 'none';
+    const staticMode = input.staticMode || this.opts?.staticMode || false;
 
     // 保存环境配置供 _executeApi 使用
     this._envConfig = envConfig;
@@ -79,6 +80,11 @@ class RegressionRunnerAgent extends BaseAgent {
     const rateLimitMs = 200;
 
     this._updateProgress(5, `准备验证 ${apis.length} 个接口`);
+
+    // ========== 静态分析模式 (只做表达式解析，不发请求) ==========
+    if (staticMode) {
+      return await this._executeStaticMode(apis, envConfig, linkedRecords, chainRules, baseURL, caseVo);
+    }
 
     // ========== 循环迭代模式 (loop) ==========
     if (iterationMode === 'loop' && dataPoolConfig) {
@@ -245,6 +251,101 @@ class RegressionRunnerAgent extends BaseAgent {
       ...reportData,
       outputFiles: {
         report: path.join(this.outDir, 'regression-report.json'),
+      },
+    };
+  }
+
+  /**
+   * 静态分析模式：只做表达式替换和引用检查，不发真实请求
+   */
+  async _executeStaticMode(apis, envConfig, linkedRecords, chainRules, baseURL, caseVo) {
+    // 用于依赖链的上下文变量
+    const contextVars = {};
+    const varResolver = new (require('../models/VarResolver').VariableResolver)();
+
+    for (let i = 0; i < apis.length; i++) {
+      const api = apis[i];
+      this._updateProgress(
+        5 + Math.round((i / apis.length) * 85),
+        `静态分析 ${i + 1}/${apis.length}: ${api.apiMethod} ${api.apiUrl}`
+      );
+
+      // 解析表达式（和 _executeApi 同样的解析流程）
+      const method = (api.apiMethod || 'GET').toUpperCase();
+      let urlPath = api.apiUrl || '';
+      let domain = api.domainName || baseURL;
+
+      // 解析 URL 引用
+      const resolveCtx = {
+        ctx: contextVars,
+        linkedRecords: linkedRecords || [],
+        currentIndex: i,
+        envConfig: envConfig || {},
+        params: {},
+      };
+      try {
+        urlPath = varResolver.resolve(urlPath, resolveCtx);
+      } catch (e) {
+        log.warn(`接口 ${i + 1} URL 解析失败: ${e.message}`);
+      }
+
+      // 检查引用是否有效
+      let refIssues = [];
+      const refRegex = /\$\{?(?:seq\.)?(\d+)(?:\.)/g;
+      let match;
+      while ((match = refRegex.exec(urlPath)) !== null) {
+        const refSeq = parseInt(match[1], 10);
+        const refIdx = refSeq - 1;
+        if (refIdx < 0 || refIdx >= apis.length) {
+          refIssues.push(`seq.${refSeq} 超出接口范围(1-${apis.length})`);
+        } else if (!contextVars[refIdx] && refIdx >= i) {
+          refIssues.push(`seq.${refSeq} 尚未执行 (当前接口 ${i + 1})`);
+        }
+      }
+
+      const result = {
+        apiIndex: i,
+        apiName: api.apiName || '',
+        apiMethod: method,
+        apiUrl: api.apiUrl,
+        resolvedUrl: urlPath,
+        refIssues,
+        status: refIssues.length > 0 ? 'REF_WARNING' : 'OK',
+        passed: refIssues.length === 0,
+        staticMode: true,
+      };
+      this.results.push(result);
+
+      // 模拟上下文（用实际 apiUrl 存入，后续接口可检测引用）
+      contextVars[i] = { _static: true, _resolved: urlPath };
+    }
+
+    const stats = {
+      total: apis.length,
+      passed: this.results.filter(r => r.passed).length,
+      failed: this.results.filter(r => !r.passed).length,
+      error: 0,
+      staticMode: true,
+    };
+
+    this._updateProgress(95, '写入静态分析报告');
+    const reportData = {
+      caseName: caseVo.name || '',
+      stats,
+      results: this.results,
+      timestamp: new Date().toISOString(),
+      staticMode: true,
+      apiCount: apis.length,
+    };
+    this._writeJSON(path.join(this.outDir, 'static-analysis-report.json'), reportData);
+
+    this._updateProgress(100, '静态分析完成');
+    log.info(`静态分析完成: ${stats.passed}/${stats.total} 通过, ${stats.failed} 引用警告`);
+
+    return {
+      ...reportData,
+      outputFiles: {
+        report: path.join(this.outDir, 'static-analysis-report.json'),
       },
     };
   }

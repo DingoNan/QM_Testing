@@ -28,12 +28,17 @@ const ReviewPage = () => {
 
   // AI 优化
   const [optimizing, setOptimizing] = React.useState(false);
+  const [swaggerEnriching, setSwaggerEnriching] = React.useState(false);
   const [optimizeResult, setOptimizeResult] = React.useState(null);
 
   // 候选扫描
   const [candidates, setCandidates] = React.useState([]);
   const [selectedCandidates, setSelectedCandidates] = React.useState({});
   const [showCandidates, setShowCandidates] = React.useState(false);
+  // 修改清单
+  const [manifest, setManifest] = React.useState([]);
+  const [brokenRefs, setBrokenRefs] = React.useState([]);
+  const [showManifest, setShowManifest] = React.useState(false);
 
   // AI 流式日志
   const [aiLog, setAiLog] = React.useState('');
@@ -303,6 +308,26 @@ const ReviewPage = () => {
       window.appApi.showToast('缺少用例数据或输出目录', 'error');
       return;
     }
+    // 先检查引用断裂
+    try {
+      const checkResult = await window.appApi.checkBrokenReferences(caseVo, applyItems);
+      if (checkResult.success && checkResult.broken && checkResult.broken.length > 0) {
+        setBrokenRefs(checkResult.broken);
+        setManifest(checkResult.manifest);
+        setShowManifest(true);
+        // 仍然继续执行，但提醒用户
+        const refMsg = '检测到 ' + checkResult.broken.length + ' 处引用断裂（指向已删除接口），是否继续？';
+        if (!confirm(refMsg)) {
+          window.appApi.showToast('已取消应用', 'info');
+          return;
+        }
+      } else if (checkResult.success) {
+        setBrokenRefs([]);
+        setManifest(checkResult.manifest);
+      }
+    } catch (e) {
+      console.warn('引用断裂检查失败:', e);
+    }
     try {
       const result = await window.appApi.applyCandidates(outDir, caseVo, applyItems);
       if (result.success) {
@@ -320,6 +345,31 @@ const ReviewPage = () => {
     } catch (e) {
       window.appApi.showToast('应用候选失败: ' + e.message, 'error');
     }
+  };
+
+  // ---- Swagger apiName 增强 ----
+  const handleSwaggerEnrich = async () => {
+    const state = pipelineStore.getState();
+    const outDir = state.outDir;
+    if (!outDir) { window.appApi.showToast('无输出目录', 'error'); return; }
+    const caseVo = pipelineResult?.caseVo || state.pipelineResult?.caseVo;
+    if (!caseVo?.apiVos?.length) { window.appApi.showToast('用例为空', 'error'); return; }
+    setSwaggerEnriching(true);
+    try {
+      const result = await window.appApi.swaggerEnrich(outDir, caseVo, '');
+      if (result.success && result.enriched) {
+        const updated = { ...pipelineResult, caseVo: result.caseVo };
+        setPipelineResult(updated);
+        pipelineStore.setState({ pipelineResult: updated });
+        initAssertions(updated);
+        window.appApi.showToast(result.message, 'success');
+      } else {
+        window.appApi.showToast(result.message || 'Swagger 增强失败', 'info');
+      }
+    } catch (e) {
+      window.appApi.showToast('Swagger 增强失败: ' + e.message, 'error');
+    }
+    setSwaggerEnriching(false);
   };
 
   // 单条接口 AI 优化
@@ -764,6 +814,11 @@ const ReviewPage = () => {
           className: 'btn btn-sm', onClick: handleAiOptimize, disabled: optimizing, key: 'optimize',
           style: { background: 'var(--purple, #8b5cf6)', color: '#fff' },
         }, optimizing ? '优化中...' : 'AI 优化'),
+        // Swagger 增强
+        React.createElement('button', {
+          className: 'btn btn-sm', onClick: handleSwaggerEnrich, disabled: swaggerEnriching || !reviewResult, key: 'swagger',
+          style: { background: 'var(--blue, #3b82f6)', color: '#fff' },
+        }, swaggerEnriching ? '获取中...' : 'Swagger 增强'),
       ]),
 
       // 审查结果摘要
@@ -877,6 +932,43 @@ const ReviewPage = () => {
             ]),
           ]))
         ),
+      ]),
+
+      // 修改清单面板
+      (manifest.length > 0 || brokenRefs.length > 0) && React.createElement('div', {
+        className: 'review-manifest-panel', key: 'manifest',
+        style: { marginTop: 8, border: '1px solid #e74c3c', borderRadius: 6, padding: 12, background: '#fdf2f2' },
+      }, [
+        React.createElement('div', { key: 'hdr', style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 } }, [
+          React.createElement('h4', { key: 't', style: { margin: 0, fontSize: 14, color: '#e74c3c' } }, '修改清单'),
+          React.createElement('button', {
+            className: 'btn btn-sm', onClick: () => { setShowManifest(!showManifest); }, key: 'toggle',
+          }, showManifest ? '折叠' : '展开'),
+        ]),
+        showManifest && React.createElement('div', { key: 'body' }, [
+          // 引用断裂警告
+          brokenRefs.length > 0 && React.createElement('div', { key: 'broken', style: { marginBottom: 8 } }, [
+            React.createElement('div', { style: { fontWeight: 600, color: '#e74c3c', marginBottom: 4, fontSize: 13 } },
+              '⚠ 检测到 ' + brokenRefs.length + ' 处引用断裂'),
+            React.createElement('div', { style: { fontSize: 12, maxHeight: 120, overflowY: 'auto' } },
+              brokenRefs.map((br, i) => React.createElement('div', {
+                key: i, style: { padding: '2px 0', color: '#c0392b' },
+              }, [
+                React.createElement('span', { style: { fontWeight: 600 } }, '接口 ' + (br.apiIndex + 1) + '.' + (br.apiName || '')),
+                ' 引用了已删除的 seq.' + br.refSeq,
+              ]))
+            ),
+          ]),
+          // 修改项列表
+          manifest.length > 0 && React.createElement('div', { key: 'items' }, [
+            React.createElement('div', { style: { fontWeight: 600, marginBottom: 4, fontSize: 13 } }, '待执行修改：'),
+            React.createElement('div', { style: { fontSize: 12, maxHeight: 150, overflowY: 'auto' } },
+              manifest.map((m, i) => React.createElement('div', {
+                key: i, style: { padding: '2px 0' },
+              }, m.label || (m.action + ' 接口 ' + (m.apiIndex + 1))))
+            ),
+          ]),
+        ]),
       ]),
 
     // Rules Editor Panel

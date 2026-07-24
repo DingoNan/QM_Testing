@@ -16,6 +16,7 @@ const api = {
   fileWrite(filePath, data)  { return ipcRenderer.invoke('file:write', filePath, data); },
   dirList(dirPath)           { return ipcRenderer.invoke('dir:list', dirPath); },
   fileExport(data)           { return ipcRenderer.invoke('file:export', data); },
+  platformImportCase(params) { return ipcRenderer.invoke('platform:importCase', params); },
   envSave(envConfig)         { return ipcRenderer.invoke('env:save', envConfig); },
   getPipelineState()         { return ipcRenderer.invoke('pipeline:state'); },
 
@@ -74,6 +75,8 @@ const api = {
   saveRuleConfigs(configs)     { return ipcRenderer.invoke('review:saveRuleConfigs', configs); },
   loadRuleConfigs()             { return ipcRenderer.invoke('review:loadRuleConfigs'); },
   applyCandidates(outDir, caseVo, applyItems) { return ipcRenderer.invoke('review:applyCandidates', { outDir, caseVo, applyItems }); },
+  swaggerEnrich(outDir, caseVo, swaggerUrl) { return ipcRenderer.invoke('review:swaggerEnrich', { outDir, caseVo, swaggerUrl }); },
+  checkBrokenReferences(caseVo, applyItems) { return ipcRenderer.invoke('review:checkBrokenReferences', { caseVo, applyItems }); },
 
   // === AI 优化 ===
   runAiOptimize(params)        { return ipcRenderer.invoke('review:optimize', params); },

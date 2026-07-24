@@ -112,16 +112,30 @@ class CaseVo {
   static fromLinkedRecords(linkedRecords, opts = {}) {
     const domainName = opts.domainName || linkedRecords[0]?.domain || '';
     const apiVos = linkedRecords.map((r, index) => {
+      // 检测 Content-Type，处理 form-urlencoded body
+      const headers = r.requestHeaders || {};
+      const contentType = Object.entries(headers).find(([k]) => k.toLowerCase() === 'content-type');
+      const contentTypeValue = contentType ? contentType[1].toLowerCase() : '';
+
       // 处理 requestBody
       let bodyStr = '';
       if (r.requestBody !== null && r.requestBody !== undefined) {
-        bodyStr = typeof r.requestBody === 'object'
-          ? JSON.stringify(r.requestBody)
-          : String(r.requestBody);
+        // form-urlencoded: parse string to JSON
+        if (contentTypeValue.includes('x-www-form-urlencoded') && typeof r.requestBody === 'string') {
+          try {
+            const parsed = Object.fromEntries(new URLSearchParams(r.requestBody));
+            bodyStr = JSON.stringify(parsed);
+          } catch {
+            bodyStr = String(r.requestBody);
+          }
+        } else if (typeof r.requestBody === 'object') {
+          bodyStr = JSON.stringify(r.requestBody);
+        } else {
+          bodyStr = String(r.requestBody);
+        }
       }
 
       // 处理 requestHeaders
-      const headers = r.requestHeaders || {};
       const keepHeaders = {};
       const KEEP = new Set([
         'token', 'authorization', 'x-csrf-token', 'x-xsrf-token',
@@ -131,6 +145,17 @@ class CaseVo {
       for (const [k, v] of Object.entries(headers)) {
         if (KEEP.has(k.toLowerCase())) {
           keepHeaders[k] = v;
+        }
+      }
+
+      // 自动补全 Content-Type: POST/PUT/PATCH 有 JSON body 但无 Content-Type
+      const method = (r.method || 'GET').toUpperCase();
+      if (['POST', 'PUT', 'PATCH'].includes(method) && !contentType && bodyStr) {
+        try {
+          JSON.parse(bodyStr);
+          keepHeaders['Content-Type'] = 'application/json';
+        } catch {
+          // 不是 JSON 格式，不自动补
         }
       }
 

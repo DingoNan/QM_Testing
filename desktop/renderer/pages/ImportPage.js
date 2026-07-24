@@ -122,6 +122,49 @@ const ImportPage = () => {
     setLoading(false);
   };
 
+  // 多文件合并：追加导入到已有 recordings
+  const handleAppendImport = async () => {
+    setLoading(true);
+    try {
+      const result = await window.appApi.openRecording();
+      if (result) {
+        const imported = await window.appApi.importRecording(result);
+        if (imported) {
+          const scs = imported.scenarios || imported.recording || imported;
+          const scArr = Array.isArray(scs) ? scs : [scs];
+          // 合并：追加到现有 recordings
+          const merged = [...recordings];
+          for (const sc of scArr) {
+            // 跨文件 (method, 归一化 URL) 去重
+            const existingKeys = new Set();
+            for (const existingSc of merged) {
+              for (const r of (existingSc.records || [])) {
+                const normUrl = (r.url || '').replace(/\/\d{3,}(?=\/|$|\?)/g, '/{id}');
+                existingKeys.add((r.method || 'GET') + '|' + normUrl);
+              }
+            }
+            // 过滤新场景中与已存在的重复记录
+            sc.records = (sc.records || []).filter(r => {
+              const normUrl = (r.url || '').replace(/\/\d{3,}(?=\/|$|\?)/g, '/{id}');
+              const key = (r.method || 'GET') + '|' + normUrl;
+              return !existingKeys.has(key);
+            });
+            if (sc.records.length > 0) {
+              merged.push(sc);
+            }
+          }
+          setRecordings(JSON.parse(JSON.stringify(merged)));
+          setSelectedScIdx(merged.length - 1);
+          setChanged(true);
+          window.appApi.showToast('追加导入成功', 'success');
+        }
+      }
+    } catch (e) {
+      window.appApi.showToast('追加导入失败: ' + e.message, 'error');
+    }
+    setLoading(false);
+  };
+
   const processImportResult = async (result) => {
     setFile(result);
     const imported = await window.appApi.importRecording(result);
@@ -469,6 +512,20 @@ const ImportPage = () => {
           style: { color: 'var(--warning)', fontSize: 13, marginRight: 8 },
           key: 'dirty',
         }, '(有未保存的修改)'),
+        React.createElement('button', {
+          className: 'btn',
+          onClick: handleImport,
+          disabled: loading,
+          key: 'reimport',
+          style: { marginRight: 4 },
+        }, '重新选择'),
+        React.createElement('button', {
+          className: 'btn',
+          onClick: handleAppendImport,
+          disabled: loading,
+          key: 'append',
+          style: { marginRight: 4 },
+        }, '+ 追加文件'),
         React.createElement('button', {
           className: 'btn btn-primary btn-lg',
           onClick: batchSave,
