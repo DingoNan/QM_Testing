@@ -91,6 +91,13 @@ class LinkerAgent extends BaseAgent {
       this._updateProgress(65, `强制替换鉴权 header: ${authDeps.length} 处`);
     }
 
+    // Step 3.2: 自动注入缺失的鉴权 header
+    const injectedDeps = this._injectAuthHeaders(linked, authSources);
+    if (injectedDeps.length > 0) {
+      allDeps.push(...injectedDeps);
+      this._updateProgress(66, `自动注入鉴权 header: ${injectedDeps.length} 处`);
+    }
+
     // Step 3.5: 应用手动关联规则
     const manualDeps = input.manualDeps || [];
     if (manualDeps.length > 0) {
@@ -539,6 +546,67 @@ class LinkerAgent extends BaseAgent {
             match_type: 'force_auth',
           });
         }
+      }
+    }
+    return deps;
+  }
+
+  /**
+   * 当 auth sources（如登录响应中的 token）存在但后续请求缺失鉴权 header 时，
+   * 自动注入到所有非 provider 的请求中，确保回归执行时携带 token
+   * @param {Object[]} records - 已关联的记录
+   * @param {Object} sources - auth sources { headerKey: { seq, path } }
+   * @returns {Object[]} deps
+   */
+  _injectAuthHeaders(records, sources) {
+    const HEADER_MAP = {
+      'token':            { header: 'Authorization', prefix: 'Bearer ' },
+      'authorization':    { header: 'Authorization', prefix: '' },
+      'x-auth-token':     { header: 'X-Auth-Token', prefix: '' },
+      'x-csrf-token':     { header: 'X-CSRF-Token', prefix: '' },
+      'x-xsrf-token':     { header: 'X-XSRF-Token', prefix: '' },
+      'x-token':          { header: 'X-Token', prefix: '' },
+      'access-token':     { header: 'Access-Token', prefix: '' },
+      'accesstoken':      { header: 'Access-Token', prefix: '' },
+      'csrf-token':       { header: 'CSRF-Token', prefix: '' },
+      'sessionid':        { header: 'Cookie', prefix: '' },
+      'sid':              { header: 'Cookie', prefix: '' },
+      'session_id':       { header: 'Cookie', prefix: '' },
+      'sessionId':        { header: 'Cookie', prefix: '' },
+      'jwt':              { header: 'Authorization', prefix: 'Bearer ' },
+      'refresh_token':    { header: 'Authorization', prefix: 'Bearer ' },
+      'access_token':     { header: 'Authorization', prefix: 'Bearer ' },
+    };
+
+    const deps = [];
+    for (const [sourceKey, source] of Object.entries(sources)) {
+      const mapping = HEADER_MAP[sourceKey];
+      if (!mapping) continue;
+
+      const { header: headerName, prefix } = mapping;
+
+      for (const r of records) {
+        // 跳过 provider 自身（如登录接口无需 Auth header）
+        if (r.seq === source.seq) continue;
+
+        const headers = r.requestHeaders || {};
+        const existing = Object.keys(headers).find(k => k.toLowerCase() === headerName.toLowerCase());
+        // 已存在则跳过（已在 _replaceHeaders 或 _forceReplaceAuthHeaders 中处理）
+        if (existing) continue;
+
+        const expr = prefix + '${seq.' + source.seq + '.' + source.path + '}';
+        headers[headerName] = expr;
+
+        deps.push({
+          from_seq: source.seq,
+          from_path: source.path,
+          to_seq: r.seq,
+          to_location: 'requestHeaders.' + headerName,
+          original_value: '',
+          match_type: 'force_auth_inject',
+        });
+
+        log.info(`自动注入 auth header: seq=${r.seq} ${headerName}: ${expr.slice(0, 60)}...`);
       }
     }
     return deps;

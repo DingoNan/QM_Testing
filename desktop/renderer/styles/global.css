@@ -171,6 +171,25 @@ body {
   color: rgba(255,255,255,0.3);
 }
 
+.sidebar-help-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 150ms var(--ease);
+  color: rgba(255,255,255,0.4);
+  background: transparent;
+}
+
+.sidebar-help-btn:hover {
+  background: var(--sidebar-hover);
+  color: rgba(255,255,255,0.85);
+}
+
 .mode-badge {
   font-size: 10px;
   padding: 2px 8px;
@@ -318,14 +337,14 @@ body {
 
 .btn-danger {
   background: var(--danger);
-  color: #fff;
+  color: #000;
   border-color: var(--danger);
 }
 
 .btn-danger:hover {
   background: #DC2626;
   border-color: #DC2626;
-  color: #fff;
+  color: #000;
 }
 
 .btn-sm {
@@ -1641,9 +1660,6 @@ select.form-input { cursor: pointer; }
   color: var(--text);
 }
 
-.btn-danger {
-  color: var(--danger) !important;
-}
 .btn-sm {
   font-size: 12px;
   padding: 4px 10px !important;

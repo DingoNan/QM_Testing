@@ -32,7 +32,6 @@
       /heartbeat/i, /ping/i, /alive/i, /healthz/i, /__webpack/i,
       /hmr/i, /hot-update/i, /sockjs/i, /livereload/i,
     ],
-    maxPreviewRecords: 50,
   };
 
   /* ═══════════════════════════════════════════════════════════════════
@@ -770,102 +769,6 @@
         font-size: 14px;
       }
 
-      /* ─── Active Tabs ─── */
-      .qm-tabs-info {
-        margin-bottom: 12px;
-        padding: 8px 12px;
-        background: #1e293b;
-        border-radius: 6px;
-        font-size: 11px;
-        color: #64748b;
-        line-height: 1.5;
-      }
-      .qm-tabs-info .qm-tab-host {
-        color: #94a3b8;
-        font-weight: 600;
-      }
-
-      /* ─── Recent Records ─── */
-      .qm-recent-title {
-        font-size: 12px;
-        font-weight: 600;
-        color: #94a3b8;
-        margin-bottom: 6px;
-      }
-      .qm-recent-list {
-        max-height: 180px;
-        overflow-y: auto;
-        border: 1px solid #1e293b;
-        border-radius: 6px;
-        background: #0f172a;
-      }
-      .qm-recent-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 5px 10px;
-        border-bottom: 1px solid #1e293b;
-        font-size: 11px;
-        font-family: 'Cascadia Code', 'Fira Code', monospace;
-        transition: background 0.1s;
-      }
-      .qm-recent-item:last-child {
-        border-bottom: none;
-      }
-      .qm-recent-item:hover {
-        background: #1e293b;
-      }
-      .qm-recent-item .qm-method {
-        font-weight: 700;
-        font-size: 10px;
-        padding: 1px 5px;
-        border-radius: 3px;
-        flex-shrink: 0;
-        min-width: 36px;
-        text-align: center;
-      }
-      .qm-recent-item .qm-method.get { color: #22d3ee; background: #164e63; }
-      .qm-recent-item .qm-method.post { color: #34d399; background: #14532d; }
-      .qm-recent-item .qm-method.put { color: #fbbf24; background: #713f12; }
-      .qm-recent-item .qm-method.patch { color: #a78bfa; background: #3b0764; }
-      .qm-recent-item .qm-method.delete { color: #f87171; background: #7f1d1d; }
-      .qm-recent-item .qm-method.other { color: #94a3b8; background: #334155; }
-      .qm-recent-item .qm-url {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        flex: 1;
-        color: #94a3b8;
-      }
-      .qm-recent-item .qm-status-code {
-        flex-shrink: 0;
-        font-size: 10px;
-        padding: 1px 4px;
-        border-radius: 3px;
-      }
-      .qm-recent-item .qm-status-code.ok { color: #22c55e; }
-      .qm-recent-item .qm-status-code.redirect { color: #fbbf24; }
-      .qm-recent-item .qm-status-code.error { color: #ef4444; }
-      .qm-recent-item .qm-tab-tag {
-        font-size: 9px;
-        padding: 1px 4px;
-        border-radius: 3px;
-        background: #334155;
-        color: #94a3b8;
-        flex-shrink: 0;
-      }
-      .qm-empty-state {
-        text-align: center;
-        padding: 24px;
-        color: #64748b;
-        font-size: 12px;
-      }
-      .qm-empty-state .qm-empty-icon {
-        font-size: 28px;
-        margin-bottom: 8px;
-        display: block;
-      }
-
       /* ─── Actions ─── */
       .qm-actions {
         display: flex;
@@ -961,36 +864,13 @@
         <button class="danger" id="qm-btn-clear">🗑 清空</button>
       </div>
 
-      <!-- 统计 -->
+      <!-- 接口数量统计 -->
       <div class="qm-stats">
         <div class="qm-stat-item">
           <span>📡</span>
+          <span>已录制 </span>
           <span class="qm-stat-value" id="qm-stat-count">0</span>
-          <span>条记录</span>
-        </div>
-        <div class="qm-stat-item">
-          <span>📋</span>
-          <span class="qm-stat-value" id="qm-stat-tabs">1</span>
-          <span>个页签</span>
-        </div>
-        <div class="qm-stat-item">
-          <span>🏷</span>
-          <span class="qm-stat-value" id="qm-stat-scenario">-</span>
-        </div>
-      </div>
-
-      <!-- 活动页签信息 -->
-      <div class="qm-tabs-info" id="qm-tabs-info">
-        <span>📌 当前页签: <span class="qm-tab-host">${location.hostname}</span></span>
-      </div>
-
-      <!-- 最近记录列表 -->
-      <div class="qm-recent-title">📋 最近请求</div>
-      <div class="qm-recent-list" id="qm-recent-list">
-        <div class="qm-empty-state">
-          <span class="qm-empty-icon">🎯</span>
-          <div>点击「开始录制」捕获 API 请求</div>
-          <div style="margin-top:4px;font-size:11px;color:#475569;">切换页签也不会丢失数据</div>
+          <span>接口</span>
         </div>
       </div>
 
@@ -1098,39 +978,14 @@
     recBtn.textContent = state.recording ? '⏹ 停止录制' : '▶ 开始录制';
     recBtn.className = state.recording ? 'danger' : 'primary';
 
-    // Count - 始终显示当前页签数与总计（跨页签时用户能看清全局）
-    const totalRecords = computeTotalRecords();
-    if (totalRecords > state.records.length) {
-      panel.querySelector('#qm-stat-count').innerHTML = state.records.length + ' <span style="font-size:11px;color:#64748b;font-weight:400">/ 总计 ' + totalRecords + '</span>';
-    } else {
-      panel.querySelector('#qm-stat-count').innerHTML = state.records.length + ' <span style="font-size:11px;color:#64748b;font-weight:400">条</span>';
-    }
+    // Count - 接口数量统计
+    panel.querySelector('#qm-stat-count').textContent = state.records.length;
 
     // Scenario name
     const scenarioInput = panel.querySelector('#qm-scenario-input');
     if (!scenarioInput.value && state.scenarioName) {
       scenarioInput.value = state.scenarioName;
     }
-    panel.querySelector('#qm-stat-scenario').textContent = state.scenarioName || '-';
-
-    // Active tabs info
-    try {
-      const tabs = readActiveTabs();
-      const tabCount = Object.keys(tabs).length;
-      panel.querySelector('#qm-stat-tabs').textContent = Math.max(tabCount, 1);
-      const tabsInfo = panel.querySelector('#qm-tabs-info');
-      if (tabCount > 1) {
-        const hosts = [...new Set(Object.values(tabs).map(t => t.host))].join(', ');
-        tabsInfo.innerHTML = `📌 活跃页签 (${tabCount}): <span class="qm-tab-host">${hosts}</span>`;
-      } else {
-        tabsInfo.innerHTML = `📌 当前页签: <span class="qm-tab-host">${location.hostname}</span>`;
-      }
-    } catch {
-      panel.querySelector('#qm-stat-tabs').textContent = '1';
-    }
-
-    // Recent list
-    updateRecentList();
     } catch (e) {
       console.warn('[QM-Recorder] UI更新失败:', e);
     }
@@ -1156,60 +1011,7 @@
     }
   }
 
-  function updateRecentList() {
-    if (!panel) return;
-    const list = panel.querySelector('#qm-recent-list');
-    // 收集所有页签的记录合并显示
-    var allData = collectAllRecords();
-    var allRecords = allData.records;
-    if (allRecords.length === 0) {
-      list.innerHTML = '' +
-        '<div class="qm-empty-state">' +
-        '<span class="qm-empty-icon">🎯</span>' +
-        '<div>点击「开始录制」捕获 API 请求</div>' +
-        '<div style="margin-top:4px;font-size:11px;color:#475569;">切换页签也不会丢失数据</div>' +
-        '</div>';
-      return;
-    }
 
-    var tabHostMap = {};
-    for (var ti = 0; ti < allData.tabSources.length; ti++) {
-      tabHostMap[allData.tabSources[ti].tabId] = allData.tabSources[ti].host || '';
-    }
-
-    var recent = allRecords.slice(-CONFIG.maxPreviewRecords).reverse();
-    var html = '';
-    for (var ri = 0; ri < recent.length; ri++) {
-      var r = recent[ri];
-      var method = (r.method || 'GET').toLowerCase();
-      var methodClass = ['get', 'post', 'put', 'patch', 'delete'].indexOf(method) !== -1 ? method : 'other';
-      var statusClass = '';
-      if (r.status >= 200 && r.status < 300) statusClass = 'ok';
-      else if (r.status >= 300 && r.status < 400) statusClass = 'redirect';
-      else if (r.status >= 400) statusClass = 'error';
-
-      var displayUrl = r.url;
-      try { var u = new URL(r.url); displayUrl = u.pathname + u.search; } catch {}
-
-      var tabHost = r.tabHost || tabHostMap[r.tabId] || '';
-      var tabTag = tabHost.split('.')[0] || '';
-
-      html += '<div class="qm-recent-item">';
-      html += '<span class="qm-method ' + methodClass + '">' + (r.method || 'GET') + '</span>';
-      html += '<span class="qm-url" title="' + escapeHtml(r.url) + '">' + escapeHtml(displayUrl) + '</span>';
-      html += '<span class="qm-status-code ' + statusClass + '">' + r.status + '</span>';
-      if (tabTag) {
-        html += '<span class="qm-tab-tag" title="' + escapeHtml(tabHost) + '">' + escapeHtml(tabTag) + '</span>';
-      }
-      html += '</div>';
-    }
-    list.innerHTML = html;
-  }
-
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
 
   /* ═══════════════════════════════════════════════════════════════════
    *  §10  Toast 通知
@@ -1294,7 +1096,7 @@
           registerThisTab();
           updateUI();
           console.log('[QM-Recorder] 跨页签同步: 开始录制');
-          if (expanded) updateRecentList();
+          if (expanded) updateUI();
         } else if (!active && state.recording && !initByCrossTab) {
           // 不是自己发起的停止（另一个页签停止了）
           state.recording = false;

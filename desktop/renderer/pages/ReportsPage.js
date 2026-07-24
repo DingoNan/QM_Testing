@@ -204,6 +204,24 @@ const ReportsPage = () => {
           style: { color: 'var(--text-tertiary)', fontSize: 12, marginLeft: 8 },
           key: 'count',
         }, '共 ' + reports.length + ' 份报告'),
+        // 全选
+        reports.length > 0 && React.createElement('label', {
+          style: { display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer', marginLeft: 12 },
+          key: 'selectAll',
+        }, [
+          React.createElement('input', {
+            type: 'checkbox',
+            checked: selectedForDelete.length === reports.length && reports.length > 0,
+            onChange: () => {
+              if (selectedForDelete.length === reports.length) {
+                setSelectedForDelete([]);
+              } else {
+                setSelectedForDelete(reports.map(r => r.id));
+              }
+            },
+          }),
+          '全选',
+        ]),
         selectedForDelete.length === 2 && React.createElement('button', {
           className: 'btn btn-sm btn-success',
           onClick: handleCompare,

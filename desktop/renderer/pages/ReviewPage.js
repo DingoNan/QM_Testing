@@ -6,6 +6,10 @@ const ReviewPage = () => {
   const [assertions, setAssertions] = React.useState({});
   const [loading, setLoading] = React.useState(true);
 
+  // 多用例切换（展开模式）
+  const [caseList, setCaseList] = React.useState(null);
+  const [currentCaseIndex, setCurrentCaseIndex] = React.useState(0);
+
   // 审查相关
   const [rules, setRules] = React.useState(null);      // 规则定义
   const [ruleConfigs, setRuleConfigs] = React.useState({}); // 规则配置
@@ -26,6 +30,10 @@ const ReviewPage = () => {
   const [optimizing, setOptimizing] = React.useState(false);
   const [optimizeResult, setOptimizeResult] = React.useState(null);
 
+  // AI 流式日志
+  const [aiLog, setAiLog] = React.useState('');
+  const aiLogRef = React.useRef('');
+
   // 规则 CRUD
   const [customRules, setCustomRules] = React.useState([]);
   const [showRuleEditor, setShowRuleEditor] = React.useState(false);
@@ -38,6 +46,14 @@ const ReviewPage = () => {
   const listRef = React.useRef(null);
   const dragFromRef = React.useRef(null);
 
+  // 修改追踪：记录当前会话中的修改
+  const modificationRecordsRef = React.useRef([]);
+  const trackModification = (type, apiIndices, summary, details) => {
+    modificationRecordsRef.current.push({
+      type, apiIndices, summary, details: details || summary,
+    });
+  };
+
   // 加载数据
   React.useEffect(() => {
     (async () => {
@@ -47,6 +63,10 @@ const ReviewPage = () => {
         if (state.pipelineResult) {
           setPipelineResult(state.pipelineResult);
           initAssertions(state.pipelineResult);
+          // 检查多 CaseVo（展开模式）
+          if (state.pipelineResult.caseVoList && Array.isArray(state.pipelineResult.caseVoList)) {
+            setCaseList(state.pipelineResult.caseVoList);
+          }
         } else if (state.outDir) {
           const result = await window.appApi.readPipelineResult(state.outDir);
           if (result && result.success) {
@@ -64,6 +84,17 @@ const ReviewPage = () => {
           defaultRules.forEach(r => {
             configs[r.id] = { enabled: r.enabledByDefault !== false, ...r.config };
           });
+          // 加载已保存的规则配置并合并（持久化）
+          try {
+            const savedConfigs = await window.appApi.loadRuleConfigs();
+            if (savedConfigs) {
+              for (const [ruleId, cfg] of Object.entries(savedConfigs)) {
+                if (configs[ruleId]) {
+                  configs[ruleId] = { ...configs[ruleId], ...cfg };
+                }
+              }
+            }
+          } catch {}
           setRuleConfigs(configs);
         }
 
@@ -85,6 +116,25 @@ const ReviewPage = () => {
       setLoading(false);
     })();
   }, []);
+
+  // 监听 AI 流式日志
+  React.useEffect(() => {
+    const unsub = window.appApi.onReviewAiChunk((chunk) => {
+      aiLogRef.current += chunk;
+      setAiLog(aiLogRef.current);
+    });
+    return () => { if (unsub) unsub(); };
+  }, []);
+
+  // 规则配置变更时自动持久化（跳过首次加载）
+  const isFirstRuleConfig = React.useRef(true);
+  React.useEffect(() => {
+    if (isFirstRuleConfig.current) {
+      isFirstRuleConfig.current = false;
+      return;
+    }
+    window.appApi.saveRuleConfigs(ruleConfigs).catch(() => {});
+  }, [ruleConfigs]);
 
   const initAssertions = (result) => {
     const cv = result?.caseVo;
@@ -163,14 +213,20 @@ const ReviewPage = () => {
   };
 
   // ---- AI 优化 ----
+  const clearAiLog = () => {
+    aiLogRef.current = '';
+    setAiLog('');
+  };
+
   const handleAiOptimize = async () => {
+    clearAiLog();
     const state = pipelineStore.getState();
     const outDir = state.outDir;
     if (!outDir) { window.appApi.showToast('无输出目录', 'error'); return; }
     setOptimizing(true);
     try {
       const cv = pipelineResult?.caseVo;
-      const result = await window.appApi.runAiOptimize({ outDir, caseVo: cv, findings: reviewResult?.findings });
+      const result = await window.appApi.runAiOptimize({ outDir, caseVo: cv, findings: reviewResult?.findings, aiSuggestions: reviewResult?.aiReview?.suggestions });
       if (result.success) {
         setOptimizeResult(result);
         window.appApi.showToast('AI 优化完成', 'success');
@@ -183,19 +239,69 @@ const ReviewPage = () => {
     setOptimizing(false);
   };
 
-  const applyOptimized = () => {
+  const applyOptimized = async () => {
     if (!optimizeResult?.optimizedCase) return;
     const updated = { ...pipelineResult, caseVo: optimizeResult.optimizedCase };
     setPipelineResult(updated);
     pipelineStore.setState({ pipelineResult: updated });
     setOptimizeResult(null);
     initAssertions(updated);
+    // 整体优化后自动持久化到文件
+    const state = pipelineStore.getState();
+    if (state.outDir) {
+      try {
+        const cv = optimizeResult.optimizedCase;
+        await window.appApi.writeFile(state.outDir + '/case-save.json', cv);
+        await window.appApi.writeFile(state.outDir + '/case-save-review.json', cv);
+      } catch (e) {
+        console.warn('自动保存 AI 优化结果失败:', e);
+      }
+    }
     window.appApi.showToast('已应用 AI 优化结果', 'success');
   };
 
   const rejectOptimized = () => {
     setOptimizeResult(null);
     window.appApi.showToast('已拒绝 AI 优化结果', 'info');
+  };
+
+  // 单条接口 AI 优化
+  const handleAiOptimizeSingle = async (apiIdx) => {
+    clearAiLog();
+    const state = pipelineStore.getState();
+    const outDir = state.outDir;
+    if (!outDir) { window.appApi.showToast('无输出目录', 'error'); return; }
+    setOptimizing(true);
+    try {
+      const cv = pipelineResult?.caseVo;
+      const result = await window.appApi.runAiOptimizeSingle({
+        outDir, caseVo: cv, apiIndex: apiIdx, findings: reviewResult?.findings,
+        aiSuggestions: reviewResult?.aiReview?.suggestions,
+      });
+      if (result.success && result.optimizedApi) {
+        // 应用优化结果到当前用例的指定接口
+        const updated = { ...pipelineResult };
+        if (updated.caseVo.apiVos[apiIdx]) {
+          Object.assign(updated.caseVo.apiVos[apiIdx], result.optimizedApi);
+        }
+        setPipelineResult(updated);
+        pipelineStore.setState({ pipelineResult: updated });
+        initAssertions(updated);
+        // 单条优化后自动持久化到文件
+        try {
+          await window.appApi.writeFile(outDir + '/case-save.json', updated.caseVo);
+          await window.appApi.writeFile(outDir + '/case-save-review.json', updated.caseVo);
+        } catch (e) {
+          console.warn('自动保存单条优化结果失败:', e);
+        }
+        window.appApi.showToast('AI 单条优化完成', 'success');
+      } else {
+        window.appApi.showToast('AI 优化失败: ' + (result.error || result.message || '未知错误'), 'error');
+      }
+    } catch (e) {
+      window.appApi.showToast('AI 优化失败: ' + e.message, 'error');
+    }
+    setOptimizing(false);
   };
 
   // ---- API 编辑 ----
@@ -238,6 +344,9 @@ const ReviewPage = () => {
     setSelectedApis({});
     setExpanded({});
     initAssertions(updated);
+    // 记录修改标签
+    trackModification('delete', indices, '删除了 ' + indices.length + ' 个接口',
+      '接口序号: ' + indices.map(i => '#' + (i + 1)).join(', '));
     // 删除后自动持久化到文件
     const state = pipelineStore.getState();
     if (state.outDir) {
@@ -256,12 +365,14 @@ const ReviewPage = () => {
     if (!api) return;
     if (!expanded[idx]) setExpanded(prev => ({ ...prev, [idx]: true }));
     setEditingApiIdx(idx);
+    const apiScript = api.apiScript || { preRequest: '', postResponse: '' };
     setEditingApiForm({
       apiMethod: api.apiMethod || 'GET',
       apiUrl: api.apiUrl || '',
       requestHeaders: typeof api.requestHeaders === 'object' ? JSON.stringify(api.requestHeaders, null, 2) : (api.requestHeaders || ''),
       requestBody: typeof api.requestBody === 'object' ? JSON.stringify(api.requestBody, null, 2) : (api.requestBody || ''),
       assertVos: api.assertVos ? api.assertVos.map(a => ({ ...a })) : [],
+      apiScript: { ...apiScript },
     });
   };
 
@@ -275,12 +386,16 @@ const ReviewPage = () => {
     try { api.requestHeaders = JSON.parse(editingApiForm.requestHeaders); } catch { api.requestHeaders = editingApiForm.requestHeaders; }
     try { api.requestBody = JSON.parse(editingApiForm.requestBody); } catch { api.requestBody = editingApiForm.requestBody; }
     api.assertVos = editingApiForm.assertVos;
+    api.apiScript = editingApiForm.apiScript || { preRequest: '', postResponse: '' };
     const updated = { ...pipelineResult, caseVo: { ...cv } };
     setPipelineResult(updated);
     pipelineStore.setState({ pipelineResult: updated });
     setEditingApiIdx(null);
     setEditingApiForm(null);
     initAssertions(updated);
+    // 记录修改标签
+    trackModification('edit', [editingApiIdx], '编辑接口 #' + (editingApiIdx + 1),
+      api.apiMethod + ' ' + api.apiUrl);
     window.appApi.showToast('接口已更新', 'success');
   };
 
@@ -296,6 +411,9 @@ const ReviewPage = () => {
     pipelineStore.setState({ pipelineResult: updated });
     setShowBatchEdit(false);
     initAssertions(updated);
+    // 记录修改标签
+    trackModification('batch_edit', indices, '批量修改 ' + indices.length + ' 个接口的 Method 为 ' + batchEditMethod,
+      '接口: ' + indices.map(i => '#' + (i + 1)).join(', '));
     window.appApi.showToast('已批量修改 Method', 'success');
   };
 
@@ -363,6 +481,22 @@ const ReviewPage = () => {
       // 同时保存到两个文件，确保各页面读取的数据一致
       await window.appApi.writeFile(outDir + '/case-save.json', cv);
       await window.appApi.writeFile(outDir + '/case-save-review.json', cv);
+
+      // 提交修改追踪标签
+      const records = modificationRecordsRef.current;
+      if (records.length > 0) {
+        for (const rec of records) {
+          await window.appApi.modificationAppend(outDir, {
+            stage: 'review',
+            type: rec.type,
+            apiIndices: rec.apiIndices,
+            summary: rec.summary,
+            details: rec.details,
+          });
+        }
+        modificationRecordsRef.current = [];
+      }
+
       window.appApi.showToast('审核结果已保存', 'success');
     } catch (e) {
       window.appApi.showToast('保存失败: ' + e.message, 'error');
@@ -512,6 +646,34 @@ const ReviewPage = () => {
     // Header
     React.createElement('div', { className: 'page-header', key: 'h' }, [
       React.createElement('h2', { key: 't' }, '智能审查'),
+      // 展开模式 Case 选择器
+      caseList && caseList.length > 1 && React.createElement('div', {
+        key: 'case-sel',
+        style: { display: 'flex', alignItems: 'center', gap: 8, marginLeft: 16 },
+      }, [
+        React.createElement('span', { style: { fontSize: 12, color: 'var(--text-secondary)' } }, '用例:'),
+        React.createElement('select', {
+          value: currentCaseIndex,
+          onChange: e => {
+            const idx = parseInt(e.target.value);
+            setCurrentCaseIndex(idx);
+            if (caseList[idx]) {
+              const updated = { ...pipelineResult, caseVo: caseList[idx] };
+              setPipelineResult(updated);
+              pipelineStore.setState({ pipelineResult: updated });
+              initAssertions(updated);
+              setExpanded({});
+              setSearchTerm('');
+            }
+          },
+          style: { padding: '4px 10px', borderRadius: 4, border: '1px solid var(--border)', fontSize: 12, background: 'var(--bg)', color: 'var(--text)' },
+        }, caseList.map((c, i) =>
+          React.createElement('option', { key: i, value: i },
+            (c.name || '用例 ' + (i + 1)) + (i === currentCaseIndex ? ' (当前)' : ''))
+        )),
+        React.createElement('span', { style: { fontSize: 11, color: 'var(--text-tertiary)' } },
+          caseList.length + ' 个'),
+      ]),
       React.createElement('div', { className: 'page-header-actions', key: 'a' }, [
         selectedCount > 0 && React.createElement('span', { style: { fontSize: 13, color: 'var(--warning)', marginRight: 8 }, key: 'sc' }, '已选 ' + selectedCount),
         React.createElement('button', { className: 'btn btn-sm', onClick: expandAll, key: 'expand' }, '展开全部'),
@@ -822,6 +984,13 @@ const ReviewPage = () => {
               onClick: e => { e.stopPropagation(); startEditApi(i); },
               style: { padding: '2px 8px', fontSize: 12 },
             }, editingApiIdx === i ? '取消' : '编辑'),
+            // AI 单条优化
+            React.createElement('button', {
+              className: 'btn btn-sm', key: 'ai-opt',
+              onClick: e => { e.stopPropagation(); handleAiOptimizeSingle(i); },
+              disabled: optimizing,
+              style: { padding: '2px 8px', fontSize: 12, background: 'var(--purple, #8b5cf6)', color: '#fff' },
+            }, '单条AI'),
             // Arrow
             React.createElement('span', { className: 'review-card-arrow', key: 'arrow' }, expanded[i] ? 'v' : '>'),
           ]),
@@ -948,6 +1117,25 @@ const ReviewPage = () => {
                   ),
                 ),
               ]),
+              // 脚本编辑
+              React.createElement(ScriptEditor, {
+                key: 'script',
+                preRequest: editingApiForm?.apiScript?.preRequest || '',
+                postResponse: editingApiForm?.apiScript?.postResponse || '',
+                onPreRequestChange: (val) => {
+                  setEditingApiForm({
+                    ...editingApiForm,
+                    apiScript: { ...(editingApiForm.apiScript || {}), preRequest: val },
+                  });
+                },
+                onPostResponseChange: (val) => {
+                  setEditingApiForm({
+                    ...editingApiForm,
+                    apiScript: { ...(editingApiForm.apiScript || {}), postResponse: val },
+                  });
+                },
+                compact: true,
+              }),
               // Save
               React.createElement('button', { className: 'btn btn-primary btn-sm', onClick: saveApiEdit }, '保存修改'),
             ]) : [
@@ -993,5 +1181,41 @@ const ReviewPage = () => {
       React.createElement('button', { className: 'btn btn-success btn-lg', onClick: () => goToPage('regression'), key: 'reg', style: { minWidth: 180 }}, '通过并进入回归验证'),
       React.createElement('button', { className: 'btn', onClick: () => goToPage('pipeline'), key: 'back' }, '返回管道'),
     ]),
+
+    // AI 流式日志面板
+    aiLog ? React.createElement('div', {
+      key: 'ai-log',
+      style: {
+        position: 'fixed', bottom: 0, right: 0, width: '50%', maxHeight: 320,
+        background: 'var(--bg, #1e1e2e)', border: '1px solid var(--border, #333)',
+        borderRadius: '8px 0 0 0', zIndex: 999,
+        display: 'flex', flexDirection: 'column',
+        boxShadow: '0 -2px 10px rgba(0,0,0,0.3)', overflow: 'hidden',
+      },
+    }, [
+      React.createElement('div', {
+        key: 'hdr',
+        style: {
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '8px 12px', borderBottom: '1px solid var(--border, #333)',
+          fontSize: 13, fontWeight: 600,
+        },
+      }, [
+        React.createElement('span', { key: 't' }, 'AI 交互日志'),
+        React.createElement('button', {
+          key: 'c', className: 'btn btn-sm', onClick: clearAiLog,
+          style: { padding: '2px 8px', fontSize: 11 },
+        }, '×'),
+      ]),
+      React.createElement('pre', {
+        key: 'content',
+        style: {
+          flex: 1, overflowY: 'auto', padding: 8, margin: 0,
+          fontSize: 11, fontFamily: 'monospace', whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all', color: 'var(--text, #ccc)',
+          maxHeight: 270,
+        },
+      }, aiLog || '等待 AI 响应...'),
+    ]) : null,
   ]);
 };

@@ -166,6 +166,24 @@
       return { success: false, error: 'Web 模式不支持手动关联' };
     },
 
+    // === 增强回归（数据池循环模式） ===
+    async runRegressionWithData(params) {
+      if (IS_ELECTRON) {
+        try { return await window.api.runRegressionWithData(params); }
+        catch (e) { return { success: false, error: e.message }; }
+      }
+      return { success: false, error: 'Web 模式暂不支持' };
+    },
+
+    // === 重新组装用例（数据绑定后） ===
+    async rerunAssembler(params) {
+      if (IS_ELECTRON) {
+        try { return await window.api.rerunAssembler(params); }
+        catch (e) { return { success: false, error: e.message }; }
+      }
+      return { success: false, error: 'Web 模式暂不支持' };
+    },
+
     // === 数据池 CRUD (Web 模式用内存/localStorage 存储) ===
     _dataPools: (() => {
       try {

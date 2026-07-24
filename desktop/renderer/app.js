@@ -5,6 +5,7 @@ const App = () => {
   const [currentPage, setCurrentPage] = React.useState('dashboard');
   const [toasts, setToasts] = React.useState([]);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const [showGuide, setShowGuide] = React.useState(false);
 
   React.useEffect(() => {
     setMode(window.appApi?.isElectron ? 'electron' : 'web');
@@ -105,7 +106,15 @@ const App = () => {
         )
       ),
       React.createElement('div', { className: 'sidebar-footer', key: 'footer' }, [
-        React.createElement('span', { className: 'sidebar-version', key: 'ver' }, 'v1.0.0'),
+        React.createElement('div', { key: 'row', style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 } }, [
+          React.createElement('span', { className: 'sidebar-version', key: 'ver' }, 'v1.0.0'),
+          React.createElement('span', {
+            className: 'sidebar-help-btn',
+            key: 'help',
+            onClick: () => setShowGuide(true),
+            title: '\u4F7F\u7528\u8BF4\u660E',
+          }, '\uD83D\uDCD6'),
+        ]),
         React.createElement('span', { className: 'mode-badge', key: 'mode' },
           mode === 'electron' ? 'Desktop' : mode === 'web' ? 'Web' : '...'),
       ]),
@@ -131,5 +140,6 @@ const App = () => {
         ])
       )
     ),
+    showGuide && React.createElement(ToolGuide, { key: 'guide', onClose: () => setShowGuide(false) }),
   ]);
 };

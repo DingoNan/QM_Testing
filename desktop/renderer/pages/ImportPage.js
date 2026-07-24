@@ -1,5 +1,95 @@
 // ImportPage.js - 导入录制 + 编辑器
 // 支持场景编辑、接口删除与修改、批量操作
+
+// 浏览器端 HAR 解析（用于非 Electron 环境拖拽导入）
+function parseHarToScenariosInBrowser(harData) {
+  const log = harData.log;
+  if (!log || !Array.isArray(log.entries)) {
+    throw new Error('无效的 HAR 文件：缺少 log.entries');
+  }
+
+  const SKIP_TYPES = new Set(['document', 'stylesheet', 'image', 'font', 'media']);
+  const records = [];
+
+  for (let i = 0; i < log.entries.length; i++) {
+    const entry = log.entries[i];
+    if (!entry.request || !entry.request.url) continue;
+
+    const resourceType = entry._resourceType || '';
+    if (resourceType && SKIP_TYPES.has(resourceType)) continue;
+
+    const req = entry.request;
+    const res = entry.response || {};
+    if (!req.url.startsWith('http')) continue;
+
+    const requestHeaders = {};
+    if (Array.isArray(req.headers)) {
+      req.headers.forEach(h => { if (h.name) requestHeaders[h.name] = h.value; });
+    }
+    const responseHeaders = {};
+    if (Array.isArray(res.headers)) {
+      res.headers.forEach(h => { if (h.name) responseHeaders[h.name] = h.value; });
+    }
+
+    let requestBody = null;
+    if (req.postData && req.postData.text) {
+      try { requestBody = JSON.parse(req.postData.text); } catch { requestBody = req.postData.text; }
+    }
+
+    let responseBody = null;
+    if (res.content && res.content.text) {
+      const ctype = res.content.mimeType || '';
+      try { responseBody = JSON.parse(res.content.text); } catch { responseBody = res.content.text; }
+      if (typeof responseBody !== 'object') {
+        if (['image', 'video', 'font', 'audio'].some(t => ctype.includes(t))) responseBody = null;
+      }
+    }
+
+    const duration = entry.time !== undefined ? Math.round(entry.time) + 'ms' : '';
+
+    records.push({
+      seq: i + 1,
+      time: entry.startedDateTime || '',
+      method: (req.method || 'GET').toUpperCase(),
+      url: req.url,
+      status: res.status || 0,
+      type: resourceType || 'XHR',
+      duration,
+      requestHeaders,
+      requestBody,
+      responseBody,
+      responseHeaders,
+      contentType: (res.content && res.content.mimeType) || '',
+    });
+  }
+
+  if (records.length === 0) {
+    throw new Error('HAR 文件中未找到可导入的 API 请求记录');
+  }
+
+  const firstPage = log.pages && log.pages[0];
+  const pageTitle = firstPage ? firstPage.title || '' : '';
+  let scenarioName = '导入录制';
+  if (pageTitle) {
+    try {
+      const u = new URL(pageTitle);
+      scenarioName = u.hostname + ' - ' + (u.pathname.split('/').filter(Boolean).pop() || '录制');
+    } catch { scenarioName = pageTitle.substring(0, 40); }
+  }
+
+  return [{
+    id: 'har_sc_' + Date.now(),
+    scenarioName,
+    records,
+    environment: { baseURL: '', authType: 'none' },
+    metadata: {
+      createdAt: firstPage ? firstPage.startedDateTime : new Date().toISOString(),
+      sourceUrl: pageTitle,
+      tags: ['har'],
+    },
+  }];
+}
+
 const ImportPage = () => {
   const [file, setFile] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
@@ -45,7 +135,7 @@ const ImportPage = () => {
       });
       setRecordings(JSON.parse(JSON.stringify(scArr)));
       setSelectedScIdx(0);
-      setChanged(false);
+      setChanged(true);
       window.appApi.showToast('导入成功: ' + (imported.name || imported.filePath || '录制文件'), 'success');
     }
   };
@@ -56,8 +146,9 @@ const ImportPage = () => {
     const files = e.dataTransfer?.files;
     if (!files || files.length === 0) return;
     const file = files[0];
-    if (!file.name.endsWith('.json')) {
-      window.appApi.showToast('仅支持 JSON 文件', 'warning');
+    const fileNameLC = file.name.toLowerCase();
+    if (!fileNameLC.endsWith('.json') && !fileNameLC.endsWith('.har')) {
+      window.appApi.showToast('仅支持 JSON / HAR 文件', 'warning');
       return;
     }
     setLoading(true);
@@ -72,7 +163,12 @@ const ImportPage = () => {
           r.readAsText(file);
         });
         const data = JSON.parse(text);
-        const scs = Array.isArray(data) ? data : [data];
+        let scs;
+        if (file.name.toLowerCase().endsWith('.har')) {
+          scs = parseHarToScenariosInBrowser(data);
+        } else {
+          scs = Array.isArray(data) ? data : [data];
+        }
         const scArr = scs.map((s, i) => ({
           id: s.id || 'sc_' + Date.now() + '_' + i,
           name: s.scenarioName || s.name || '场景 ' + (i + 1),
@@ -108,7 +204,7 @@ const ImportPage = () => {
         setFile(importResult);
         setRecordings(JSON.parse(JSON.stringify(scArr)));
         setSelectedScIdx(0);
-        setChanged(false);
+        setChanged(true);
         pipelineStore.setState({
           recording: scArr,
           stats,
@@ -359,7 +455,7 @@ const ImportPage = () => {
       }, [
         React.createElement('span', { className: 'drop-zone-icon', key: 'icon' }, '📂'),
         React.createElement('h3', { key: 't' }, '点击选择或拖拽录制 JSON 文件到此处'),
-        React.createElement('p', { key: 'p' }, '支持 Tampermonkey 导出格式'),
+        React.createElement('p', { key: 'p' }, '支持 Tampermonkey 导出格式 / 浏览器 HAR 文件'),
       ]),
     ]);
   }
@@ -559,7 +655,15 @@ const ImportPage = () => {
                 rec.duration && React.createElement('span', { style: { fontSize: 11, color: 'var(--text-secondary)' }}, rec.duration),
                 React.createElement('button', {
                   className: 'btn btn-sm',
-                  onClick: e => { e.stopPropagation(); startEditing(selectedScIdx, globalRecIdx); },
+                  onClick: e => { 
+                    e.stopPropagation(); 
+                    if (isEditing) {
+                      setEditingApi(null);
+                      setEditForm(null);
+                    } else {
+                      startEditing(selectedScIdx, globalRecIdx);
+                    }
+                  },
                   style: { padding: '2px 8px', fontSize: 12 },
                 }, isEditing ? '取消' : '编辑'),
                 React.createElement('button', {

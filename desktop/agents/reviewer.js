@@ -193,6 +193,42 @@ class ReviewerAgent extends BaseAgent {
   }
 
   /**
+   * 从 AI 返回文本中安全提取 JSON 对象
+   * 支持：纯 JSON、代码块包裹、多余文本等情况
+   */
+  _extractJSON(text) {
+    if (!text) return null;
+    // 1) 直接解析整个文本
+    try { return JSON.parse(text.trim()); } catch {}
+    // 2) 从 markdown 代码块中提取
+    const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlock) {
+      try { return JSON.parse(codeBlock[1].trim()); } catch {}
+    }
+    // 3) 括号平衡法：找到第一个完整 JSON 对象（避免多余文本干扰）
+    let idx = 0;
+    while ((idx = text.indexOf('{', idx)) !== -1) {
+      let depth = 0;
+      let inStr = false;
+      for (let i = idx; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"' && (i === 0 || text[i - 1] !== '\\')) { inStr = !inStr; continue; }
+        if (!inStr) {
+          if (c === '{') depth++;
+          else if (c === '}') {
+            depth--;
+            if (depth === 0) {
+              try { return JSON.parse(text.substring(idx, i + 1)); } catch { break; }
+            }
+          }
+        }
+      }
+      idx++;
+    }
+    return null;
+  }
+
+  /**
    * 执行审查
    * @param {Object} input
    * @param {Object} input.data - CaseVo JSON 对象
@@ -287,7 +323,7 @@ class ReviewerAgent extends BaseAgent {
     if (useAI) {
       this._updateProgress(60, '正在进行 AI 深度审查...');
       try {
-        aiReview = await this._aiReview(caseVo, input.aiProvider);
+        aiReview = await this._aiReview(caseVo, findings, input.aiProvider, input.aiChunkCb);
         this._updateProgress(85, 'AI 审查完成');
       } catch (e) {
         log.error(`AI review failed: ${e.message}`);
@@ -336,8 +372,12 @@ class ReviewerAgent extends BaseAgent {
 
   /**
    * AI 深度审查：用 LLM 分析用例质量
+   * @param {Object} caseVo - 用例对象
+   * @param {Object} [aiProvider] - AI Provider 配置
+   * @param {Function} [onChunk] - 流式回调，收到每个文本块时触发
    */
-  async _aiReview(caseVo, aiProvider) {
+  async _aiReview(caseVo, findings, aiProvider, onChunk) {
+    log.info(`AI 审查开始, 用例: ${caseVo.name || '-'}, 接口数: ${(caseVo.apiVos || []).length}`);
     const aiConfig = aiProvider || (() => {
       try { return require('../core/ai-config').getActiveProvider(); } catch { return null; }
     })();
@@ -350,6 +390,7 @@ class ReviewerAgent extends BaseAgent {
     }
 
     if (!provider) {
+      log.warn('AI Provider 未配置, 跳过 AI 审查');
       return { skipped: true, message: '未配置 AI Provider，跳过 AI 审查' };
     }
 
@@ -369,6 +410,13 @@ class ReviewerAgent extends BaseAgent {
   有请求体: ${api.requestBody ? '是' : '否'}`;
     }).join('\n');
 
+    // 将内置规则 findings 传入 prompt
+    const findingsText = findings && findings.length > 0
+      ? '\n## 内置规则审查发现的问题（供参考）\n' + findings.filter(f => !f.pass).map(f =>
+          `- [#${f.apiIndex + 1}] [${f.severity}] ${f.ruleName}: ${f.message}`
+        ).join('\n')
+      : '';
+
     const prompt = `你是一名 API 测试专家，审查以下测试用例并给出改进建议。
 
 ## 用例信息
@@ -377,31 +425,44 @@ class ReviewerAgent extends BaseAgent {
 环境: ${['开发','测试','预发布','生产'][caseVo.environment] || '-'}
 
 ## 接口列表
-${apiSummaries}
+${apiSummaries}${findingsText}
 
 ## 审查要求
 请以 JSON 格式输出审查结果，包含以下字段：
 1. overall_quality: "good"/"fair"/"poor"
 2. summary: 总体评价（中文，50字以内）
-3. suggestions: 改进建议数组，每项包含 { apiIndex: 数字, issue: 问题描述, suggestion: 建议 }
+3. suggestions: 改进建议数组，每项包含：
+   - apiIndex: 数字
+   - issue: 问题描述
+   - suggestion: 改进建议（文字说明）
+   - solution: 具体的修复方案（JSON 代码片段或配置说明）
 
+注意：针对内置规则发现的问题，必须给出具体的 solution 字段，
+      说明如何修改断言、请求体、请求头等。
 只输出 JSON，不要其他文字。`;
 
     try {
-      const result = await client.generate(prompt, {
-        system: '你是一个API测试用例审查助手，请专业分析用例质量，输出JSON格式结果。',
-        temperature: 0.1,
-        maxTokens: 2048,
-      });
+      const systemMsg = '你是一个API测试用例审查助手，请专业分析用例质量，输出JSON格式结果。';
+      const opts = { system: systemMsg, temperature: 0.1, maxTokens: 2048 };
+
+      let result;
+      if (onChunk) {
+        result = await client.generateStream(prompt, onChunk, opts);
+      } else {
+        result = await client.generate(prompt, opts);
+      }
 
       const text = result.response || '';
-      // 尝试提取 JSON
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+      // 尝试提取 JSON（支持代码块、多余文本等情况）
+      const parsed = this._extractJSON(text);
+      if (parsed) {
+        log.info(`AI 审查完成, 质量评级: ${parsed.overall_quality || 'unknown'}, 建议数: ${(parsed.suggestions || []).length}`);
+        return parsed;
       }
+      log.warn(`AI 审查返回结果无法解析: ${text.slice(0, 200)}`);
       return { raw: text };
     } catch (e) {
+      log.error(`AI 审查失败: ${e.message}`);
       return { error: e.message };
     }
   }
@@ -409,14 +470,17 @@ ${apiSummaries}
   /**
    * AI 优化用例：审查后将审查发现的问题发给 AI，返回优化后的用例
    * @param {Object} caseVo - 原始用例对象
-   * @param {Object} [findings] - 审查发现的问题
+   * @param {Object[]} [findings] - 审查发现的问题
+   * @param {Function} [onChunk] - 流式回调，收到每个文本块时触发
    * @returns {Promise<Object>} 优化后的用例
    */
-  async _aiOptimize(caseVo, findings) {
+  async _aiOptimize(caseVo, findings, aiSuggestions, onChunk) {
+    log.info(`AI 优化开始, 模式: 全量, 用例: ${caseVo.name || '-'}, 接口数: ${(caseVo.apiVos || []).length}`);
     const aiConfig = (() => {
       try { return require('../core/ai-config').getActiveProvider(); } catch { return null; }
     })();
     if (!aiConfig) {
+      log.warn('AI Provider 未配置, 跳过 AI 优化');
       return { optimizedCase: null, message: '未配置 AI Provider' };
     }
     const { AIClient } = require('../core/ai-client');
@@ -425,14 +489,21 @@ ${apiSummaries}
     const apis = caseVo.apiVos || [];
     const apiSummaries = apis.map((api, i) => {
       const asserts = (api.assertVos || []).map(a =>
-        `  - ${a.expression} ${a.validateType === 3 ? '=' : a.validateType === 1 ? 'not empty' : ''} ${a.expectValue || ''}`
+        `  - ${a.expression} ${a.validateType === 3 ? `= ${a.expectValue ?? '(空)'}` : a.validateType === 1 ? '(非空检查)' : a.validateType === 0 ? '(存在检查)' : ''}`
       ).join('\n');
       return `[${i + 1}] ${api.apiMethod} ${api.apiUrl}\n  名称: ${api.apiName || '-'}\n  断言:\n${asserts || '  无断言'}`;
     }).join('\n');
 
     const findingsText = findings && findings.length > 0
-      ? '\n## 审查发现问题\n' + findings.filter(f => !f.pass).map(f =>
-          `- [#${f.apiIndex + 1}] ${f.ruleName}: ${f.message}`
+      ? '\n## 内置规则审查发现的问题\n' + findings.filter(f => !f.pass).map(f =>
+          `- [#${f.apiIndex + 1}] [${f.severity}] ${f.ruleName}: ${f.message}`
+        ).join('\n')
+      : '';
+
+    // 将 AI 审查 suggestions 传入 prompt
+    const aiSuggestionsText = aiSuggestions && aiSuggestions.length > 0
+      ? '\n## AI 深度审查建议（供参考，优先遵循）\n' + aiSuggestions.map(s =>
+          `- [#${s.apiIndex + 1}] ${s.issue}\n  建议: ${s.suggestion}\n  修复方案: ${s.solution || '无具体方案'}`
         ).join('\n')
       : '';
 
@@ -443,36 +514,165 @@ ${apiSummaries}
 域名: ${caseVo.domainName || '-'}
 
 ## 接口列表
-${apiSummaries}${findingsText}
+${apiSummaries}${findingsText}${aiSuggestionsText}
 
 ## 优化要求
-请根据以下原则优化测试用例：
-1. 修复缺失或错误的断言
-2. 补充必要的请求头
-3. 确保断言更精确（如状态码、关键字段）
-4. 保留所有原始数据不变，仅修改断言和必要的请求参数
+请**优先按照 AI 深度审查给出的修复方案**进行优化。
+如果 AI 审查未给出具体方案，再结合内置规则发现的问题自行修复。
+
+**最重要的原则：只添加缺失的断言，不要修改已有的断言！**
+
+具体操作：
+1. 只添加缺失的状态码断言（如 responseBody.code = 200）
+2. **已有的断言必须保持原样输出**，不要改变其 expression、validateType 或 expectValue
+3. 断言中的 \`(空)\` 表示该断言未设置期望值，这是合理状态，不要试图"修复"
+4. 断言中的 \`(非空检查)\` / \`(存在检查)\` 表示仅检查字段是否存在，不需要期望值
+5. 补充必要的请求头
+6. **⚠️ 防过度修复**：不要修改本应为空的请求参数。保留原始空值/空字符串
+7. 保留所有原始数据不变
+8. **不要删除任何接口**
 
 ## 输出格式
 请以 JSON 格式输出优化后的用例，保持与原用例相同的结构，只修改需要优化的部分。
+优化后的 JSON 中 apiVos 数组长度必须与原始完全一致。
 
 只输出 JSON，不要其他文字。`;
 
     try {
-      const result = await client.generate(prompt, {
+      const opts = {
         system: '你是一个API测试用例优化助手，请根据审查发现的问题优化用例，输出JSON格式结果。',
         temperature: 0.2,
         maxTokens: 8192,
-      });
+      };
+
+      let result;
+      if (onChunk) {
+        result = await client.generateStream(prompt, onChunk, opts);
+      } else {
+        result = await client.generate(prompt, opts);
+      }
 
       const text = result.response || '';
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const optimized = JSON.parse(jsonMatch[0]);
-        return { optimizedCase: optimized, message: 'AI 优化完成' };
+      const parsedObj = this._extractJSON(text);
+      if (parsedObj) {
+        log.info('AI 优化完成 (全量)');
+        return { optimizedCase: parsedObj, message: 'AI 优化完成' };
       }
+      log.warn(`AI 优化返回结果无法解析: ${text.slice(0, 200)}`);
       return { optimizedCase: null, message: '无法解析 AI 返回结果' };
     } catch (e) {
+      log.error(`AI 优化失败: ${e.message}`);
       return { optimizedCase: null, error: e.message };
+    }
+  }
+
+  /**
+   * AI 单条接口优化：针对指定的单个接口进行 AI 优化
+   * @param {Object} caseVo - 原始用例对象
+   * @param {number} apiIndex - 要优化的接口索引
+   * @param {Object[]} [findings] - 审查发现的问题
+   * @param {Function} [onChunk] - 流式回调
+   * @returns {Promise<Object>}
+   */
+  async _aiOptimizeSingle(caseVo, apiIndex, findings, aiSuggestions, onChunk) {
+    log.info(`AI 优化开始, 模式: 单条(#${apiIndex + 1}), 用例: ${caseVo.name || '-'}`);
+    const aiConfig = (() => {
+      try { return require('../core/ai-config').getActiveProvider(); } catch { return null; }
+    })();
+    if (!aiConfig) {
+      log.warn('AI Provider 未配置, 跳过 AI 单条优化');
+      return { optimizedApi: null, message: '未配置 AI Provider' };
+    }
+    const { AIClient } = require('../core/ai-client');
+    const client = new AIClient(aiConfig);
+
+    const apis = caseVo.apiVos || [];
+    const api = apis[apiIndex];
+    if (!api) return { optimizedApi: null, message: '接口不存在' };
+
+    const apiFindings = (findings || []).filter(f => f.apiIndex === apiIndex && !f.pass);
+
+    // 筛选该接口的 AI 审查建议
+    const apiAiSuggestions = (aiSuggestions || []).filter(s => s.apiIndex === apiIndex);
+
+    const asserts = (api.assertVos || []).map(a =>
+      `  - ${a.expression} ${a.validateType === 3 ? `= ${a.expectValue ?? '(空)'}` : a.validateType === 1 ? '(非空检查)' : a.validateType === 0 ? '(存在检查)' : ''}`
+    ).join('\n');
+
+    const aiSuggestionsText = apiAiSuggestions.length > 0
+      ? '\n## AI 深度审查建议（供参考，优先遵循）\n' + apiAiSuggestions.map(s =>
+          `- ${s.issue}\n  建议: ${s.suggestion}\n  修复方案: ${s.solution || '无具体方案'}`
+        ).join('\n')
+      : '';
+
+    const prompt = `你是一名 API 测试专家，请优化以下测试用例中的单个接口。
+
+## 用例信息
+名称: ${caseVo.name || '-'}
+域名: ${caseVo.domainName || '-'}
+
+## 接口信息
+序号: #${apiIndex + 1}
+方法: ${api.apiMethod}
+URL: ${api.apiUrl}
+名称: ${api.apiName || '-'}
+请求头: ${JSON.stringify(api.requestHeaders || {})}
+请求体: ${api.requestBody || '无'}
+断言:\n${asserts || '  无断言'}
+
+## 内置规则审查发现的问题
+${apiFindings.map(f => `- [${f.severity}] ${f.ruleName}: ${f.message}`).join('\n') || '无发现的问题'}${aiSuggestionsText}
+
+## 优化要求
+请**优先按照 AI 深度审查给出的修复方案**进行优化。
+如果 AI 审查未给出具体方案，再结合内置规则发现的问题自行修复。
+
+**最重要的原则：只添加缺失的断言，不要修改已有的断言！**
+
+1. 只添加缺失的状态码断言（如 responseBody.code = 200）
+2. **已有的断言必须保持原样输出**，不要改变其 expression、validateType 或 expectValue
+3. 断言中的 \`(空)\` 表示该断言未设置期望值，这是合理状态，不要试图"修复"
+4. 断言中的 \`(非空检查)\` / \`(存在检查)\` 表示仅检查字段是否存在，不需要期望值
+5. 补充必要的请求头
+6. **⚠️ 防过度修复**：保留原始空值/空字符串
+7. 只输出优化后的单个接口 JSON，不要输出完整用例
+
+## 输出格式
+只输出以下格式的 JSON，不要其他文字：
+{
+  "apiMethod": "...",
+  "apiUrl": "...",
+  "requestHeaders": {...},
+  "requestBody": "...",
+  "assertVos": [...],
+  "apiScript": {...}
+}`;
+
+    try {
+      const opts = {
+        system: '你是一个API测试用例优化助手，请针对单个接口进行优化，输出JSON格式结果。',
+        temperature: 0.2,
+        maxTokens: 4096,
+      };
+
+      let result;
+      if (onChunk) {
+        result = await client.generateStream(prompt, onChunk, opts);
+      } else {
+        result = await client.generate(prompt, opts);
+      }
+
+      const text = result.response || '';
+      const parsedObj = this._extractJSON(text);
+      if (parsedObj) {
+        log.info(`AI 单条优化完成 (#${apiIndex + 1})`);
+        return { optimizedApi: parsedObj, message: 'AI 单条优化完成' };
+      }
+      log.warn(`AI 单条优化返回结果无法解析: ${text.slice(0, 200)}`);
+      return { optimizedApi: null, message: '无法解析 AI 返回结果' };
+    } catch (e) {
+      log.error(`AI 单条优化失败: ${e.message}`);
+      return { optimizedApi: null, error: e.message };
     }
   }
 }

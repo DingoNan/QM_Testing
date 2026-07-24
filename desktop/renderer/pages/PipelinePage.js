@@ -103,6 +103,7 @@ const PipelinePage = () => {
       const result = await window.appApi.startPipeline({
         recordingPath: state.recordingPath,
         envConfig,
+        inputData: state.recording,
       });
       if (result && result.success) {
         setOutDir(result.outDir || '');
@@ -363,18 +364,74 @@ const PipelinePage = () => {
       key: 'dbw',
       dataPools,
       records: pipelineResult?.caseVo?.apiVos || [],
-      onComplete: (result) => {
+      onComplete: async (result) => {
         setShowDataBinding(false);
         if (result && result.mappings) {
           const state = pipelineStore.getState();
           if (state.outDir) {
             try {
-              window.appApi.writeFile(state.outDir + '/data-bindings.json', result);
+              await window.appApi.writeFile(state.outDir + '/data-bindings.json', result);
             } catch (e) {
               console.warn('保存数据绑定失败:', e);
             }
           }
-          window.appApi.showToast('数据绑定完成: ' + result.mappings.length + ' 个映射', 'success');
+
+          const iterationMode = result.settings?.iterationMode || 'expand';
+          const poolId = result.dataPoolId;
+
+          if (iterationMode === 'expand' && poolId && state.outDir) {
+            // 展开模式：重新运行 Assembler 生成多 CaseVo
+            try {
+              window.appApi.showToast('正在展开数据生成用例...', 'info');
+              const poolResult = await window.appApi.dataPoolGet(poolId);
+              if (poolResult && poolResult.success && poolResult.pool) {
+                const pool = poolResult.pool;
+                const expandResult = await window.appApi.rerunAssembler({
+                  outDir: state.outDir,
+                  dataPoolConfig: pool,
+                  iterationMode: 'expand',
+                  chainRules: result.chainRules || [],
+                });
+                if (expandResult && expandResult.success) {
+                  // 更新 pipelineStore 中的 result
+                  const pr = pipelineStore.getState().pipelineResult || {};
+                  // 展开模式可能返回多个 CaseVo，存储完整列表供 ReviewPage/RegressionPage 切换
+                  const caseVoArray = Array.isArray(expandResult.caseVo) ? expandResult.caseVo : null;
+                  const caseVo = Array.isArray(expandResult.caseVo) ? expandResult.caseVo[0] : expandResult.caseVo;
+                  const updatedResult = { ...pr, caseVo, caseVoList: caseVoArray };
+                  pipelineStore.setState({ pipelineResult: updatedResult });
+                  setPipelineResult(updatedResult);
+                  const totalCases = expandResult.stats?.totalCaseCount || expandResult.stats?.rowCount || 0;
+                  window.appApi.showToast(
+                    '数据展开完成: 生成 ' + totalCases + ' 个用例', 'success');
+                } else {
+                  window.appApi.showToast('展开失败: ' + (expandResult?.error || '未知错误'), 'error');
+                }
+              }
+            } catch (e) {
+              console.warn('展开模式执行失败:', e);
+              window.appApi.showToast('展开模式执行失败: ' + e.message, 'error');
+            }
+          } else if (iterationMode === 'loop' && poolId && state.outDir) {
+            // 循环模式：保存数据池配置到 pipelineStore
+            try {
+              const poolResult = await window.appApi.dataPoolGet(poolId);
+              if (poolResult && poolResult.success && poolResult.pool) {
+                const pr = pipelineStore.getState().pipelineResult || {};
+                const updatedResult = {
+                  ...pr,
+                  dataPoolConfig: poolResult.pool,
+                  iterationMode: 'loop',
+                };
+                pipelineStore.setState({ pipelineResult: updatedResult });
+              }
+            } catch (e) {
+              console.warn('保存循环模式配置失败:', e);
+            }
+            window.appApi.showToast('循环模式绑定完成: ' + result.mappings.length + ' 个映射', 'success');
+          } else {
+            window.appApi.showToast('数据绑定完成: ' + result.mappings.length + ' 个映射', 'success');
+          }
         }
       },
       onClose: () => setShowDataBinding(false),

@@ -74,30 +74,137 @@ function setupEventForwarding(orch, mainWindow) {
   });
 }
 
+// ========== HAR 文件解析 ==========
+/**
+ * 将浏览器导出的 HAR (HTTP Archive) 格式转换为内部场景格式
+ * @param {Object} harData - 解析后的 HAR JSON 数据
+ * @returns {Object} 场景对象，可直接传入 Recording 构造函数
+ */
+function parseHarToScenarios(harData) {
+  const log = harData.log;
+  if (!log || !Array.isArray(log.entries)) {
+    throw new Error('无效的 HAR 文件：缺少 log.entries');
+  }
+
+  const SKIP_TYPES = new Set(['document', 'stylesheet', 'image', 'font', 'media']);
+  const records = [];
+
+  for (let i = 0; i < log.entries.length; i++) {
+    const entry = log.entries[i];
+    if (!entry.request || !entry.request.url) continue;
+
+    // Chrome DevTools _resourceType 过滤静态资源
+    const resourceType = entry._resourceType || '';
+    if (resourceType && SKIP_TYPES.has(resourceType)) continue;
+
+    const req = entry.request;
+    const res = entry.response || {};
+    if (!req.url.startsWith('http')) continue;
+
+    // 请求头: [{name,value}] → {key: val}
+    const requestHeaders = {};
+    if (Array.isArray(req.headers)) {
+      req.headers.forEach(h => { if (h.name) requestHeaders[h.name] = h.value; });
+    }
+    const responseHeaders = {};
+    if (Array.isArray(res.headers)) {
+      res.headers.forEach(h => { if (h.name) responseHeaders[h.name] = h.value; });
+    }
+
+    // 请求体
+    let requestBody = null;
+    if (req.postData && req.postData.text) {
+      try { requestBody = JSON.parse(req.postData.text); } catch { requestBody = req.postData.text; }
+    }
+
+    // 响应体
+    let responseBody = null;
+    if (res.content && res.content.text) {
+      const ctype = res.content.mimeType || '';
+      try { responseBody = JSON.parse(res.content.text); } catch { responseBody = res.content.text; }
+      if (typeof responseBody !== 'object') {
+        const binaryTypes = ['image', 'video', 'font', 'audio'];
+        if (binaryTypes.some(t => ctype.includes(t))) responseBody = null;
+      }
+    }
+
+    const duration = entry.time !== undefined ? Math.round(entry.time) + 'ms' : '';
+
+    records.push({
+      seq: i + 1,
+      time: entry.startedDateTime || '',
+      method: (req.method || 'GET').toUpperCase(),
+      url: req.url,
+      status: res.status || 0,
+      type: resourceType || 'XHR',
+      duration,
+      requestHeaders,
+      requestBody,
+      responseBody,
+      responseHeaders,
+      contentType: (res.content && res.content.mimeType) || '',
+    });
+  }
+
+  if (records.length === 0) {
+    throw new Error('HAR 文件中未找到可导入的 API 请求记录');
+  }
+
+  const firstPage = log.pages && log.pages[0];
+  const pageTitle = firstPage ? firstPage.title || '' : '';
+  let scenarioName = '导入录制';
+  if (pageTitle) {
+    try {
+      const u = new URL(pageTitle);
+      scenarioName = u.hostname + ' - ' + (u.pathname.split('/').filter(Boolean).pop() || '录制');
+    } catch { scenarioName = pageTitle.substring(0, 40); }
+  }
+
+  return {
+    scenarioName,
+    startTime: firstPage ? firstPage.startedDateTime : new Date().toISOString(),
+    sourceUrl: pageTitle,
+    tags: ['har'],
+    records,
+    environment: { baseURL: '', authType: 'none' },
+  };
+}
+
 function registerIpcHandlers(ipcMain, mainWindow) {
   // 选择录制 JSON 文件
   ipcMain.handle('dialog:openRecording', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
-      title: '选择录制 JSON 文件',
-      filters: [{ name: 'JSON 文件', extensions: ['json'] }],
+      title: '选择录制文件',
+      filters: [{ name: '录制文件', extensions: ['json', 'har'] }],
       properties: ['openFile'],
     });
     if (result.canceled || result.filePaths.length === 0) return null;
     return result.filePaths[0];
   });
 
-  // 导入录制文件并预览
+  // 导入录制文件并预览（支持 JSON 和 HAR 格式）
   ipcMain.handle('recording:import', async (event, filePath) => {
     if (!fs.existsSync(filePath)) {
       return { error: `文件不存在: ${filePath}` };
     }
+    const ext = path.extname(filePath).toLowerCase();
     const raw = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    const recording = new Recording(raw);
-    return {
-      scenarios: recording.scenarios,
-      stats: recording.getStats(),
-      filePath,
-    };
+
+    let scenarios;
+    let stats;
+
+    if (ext === '.har') {
+      const scenario = parseHarToScenarios(raw);
+      const recording = new Recording(scenario);
+      scenarios = recording.scenarios;
+      stats = recording.getStats();
+    } else {
+      const recording = new Recording(raw);
+      scenarios = recording.scenarios;
+      stats = recording.getStats();
+    }
+
+    return { scenarios, stats, filePath };
   });
 
   // 保存录制编辑
@@ -181,15 +288,73 @@ function registerIpcHandlers(ipcMain, mainWindow) {
       iterationMode: config.iterationMode || 'none',
     }).catch((err) => {
       log.error(`Pipeline error: ${err.message}`);
-      return { error: err.message };
+      return { _catchError: err.message };
     });
+
+    let pipelineError;
+    if (pipelineResult === false) {
+      // Agent 执行失败，从 orchestrator.results 中找具体错误
+      const errEntry = Object.entries(orchestrator.results || {}).find(([, v]) => v && v.error);
+      pipelineError = errEntry ? errEntry[1].error : '管道处理失败: 处理阶段出错';
+      log.error(`Pipeline failed: ${pipelineError}`);
+    } else if (pipelineResult && pipelineResult._catchError) {
+      pipelineError = `管道处理失败: ${pipelineResult._catchError}`;
+    }
 
     return {
       status: pipelineResult === false ? 'failed' : 'completed',
       totalStages: pipeline.stages.length,
       outDir,
-      success: pipelineResult !== false,
+      success: !pipelineError,
+      ...(pipelineError ? { error: pipelineError } : {}),
     };
+  });
+
+  // 重新运行 Assembler（数据绑定后展开模式使用）
+  ipcMain.handle('pipeline:rerunAssembler', async (event, { outDir, dataPoolConfig, iterationMode, chainRules }) => {
+    try {
+      if (!outDir || !fs.existsSync(outDir)) {
+        return { success: false, error: '输出目录不存在' };
+      }
+
+      // 读取已有管道输出
+      const linkedPath = path.join(outDir, 'linked.json');
+      if (!fs.existsSync(linkedPath)) {
+        return { success: false, error: '关联数据不存在，请先完成管道处理' };
+      }
+      const linkedRecords = JSON.parse(fs.readFileSync(linkedPath, 'utf-8'));
+
+      let envConfig = {};
+      const envPath = path.join(outDir, 'env-config.json');
+      if (fs.existsSync(envPath)) {
+        envConfig = JSON.parse(fs.readFileSync(envPath, 'utf-8'));
+      }
+
+      // 读取录制名称
+      const recordingPath = path.join(outDir, '..', path.basename(outDir) + '.json');
+      let recordingName = '';
+      if (fs.existsSync(recordingPath)) {
+        try {
+          const rec = JSON.parse(fs.readFileSync(recordingPath, 'utf-8'));
+          recordingName = rec.name || rec.fileName || '';
+        } catch {}
+      }
+
+      const assemblerAgent = new AssemblerAgent({ outDir });
+      const result = await assemblerAgent.execute({
+        data: linkedRecords,
+        envConfig,
+        dataPoolConfig,
+        iterationMode: iterationMode || 'expand',
+        chainRules: chainRules || [],
+        config: { name: recordingName },
+      });
+
+      return { success: true, ...result };
+    } catch (e) {
+      log.error(`重新组装用例失败: ${e.message}`);
+      return { success: false, error: e.message };
+    }
   });
 
   // 读取管道处理结果
@@ -436,11 +601,13 @@ function registerIpcHandlers(ipcMain, mainWindow) {
       }
 
       const reviewer = new ReviewerAgent({ outDir });
+      const sendChunk = (chunk) => { if (mainWindow) mainWindow.webContents.send('review:aiChunk', chunk); };
       const result = await reviewer.execute({
         data: caseVo,
         ruleConfigs,
         linkedRecords,
         useAI,
+        aiChunkCb: sendChunk,
       });
 
       return { success: true, ...result };
@@ -462,17 +629,20 @@ function registerIpcHandlers(ipcMain, mainWindow) {
   // ============ 回归验证 ============
 
   // 执行回归验证
-  ipcMain.handle('regression:run', async (event, { outDir }) => {
+  ipcMain.handle('regression:run', async (event, { outDir, caseVo: customCaseVo }) => {
     if (!outDir || !fs.existsSync(outDir)) {
       return { success: false, error: '输出目录不存在' };
     }
     try {
-      // 读取用例数据
-      const casePath = path.join(outDir, 'case-save.json');
-      if (!fs.existsSync(casePath)) {
-        return { success: false, error: '用例文件不存在，请先完成管道处理' };
+      // 读取用例数据（优先使用传入的 caseVo）
+      let caseVo = customCaseVo;
+      if (!caseVo) {
+        const casePath = path.join(outDir, 'case-save.json');
+        if (!fs.existsSync(casePath)) {
+          return { success: false, error: '用例文件不存在，请先完成管道处理' };
+        }
+        caseVo = JSON.parse(fs.readFileSync(casePath, 'utf-8'));
       }
-      const caseVo = JSON.parse(fs.readFileSync(casePath, 'utf-8'));
 
       // 读取环境配置
       let envConfig = {};
@@ -800,15 +970,57 @@ function registerIpcHandlers(ipcMain, mainWindow) {
     return { success: false, error: '规则未找到' };
   });
 
+  // 保存审查规则启用配置（持久化）
+  const RULE_CONFIG_PATH = path.resolve(__dirname, '..', 'data', 'review-rule-config.json');
+
+  ipcMain.handle('review:saveRuleConfigs', async (event, configs) => {
+    try {
+      const dir = path.dirname(RULE_CONFIG_PATH);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(RULE_CONFIG_PATH, JSON.stringify(configs, null, 2), 'utf-8');
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  });
+
+  ipcMain.handle('review:loadRuleConfigs', async (event) => {
+    try {
+      if (fs.existsSync(RULE_CONFIG_PATH)) {
+        return JSON.parse(fs.readFileSync(RULE_CONFIG_PATH, 'utf-8'));
+      }
+    } catch {}
+    return null;
+  });
+
   // ============ AI 优化 ============
 
-  // AI 审查后优化用例
-  ipcMain.handle('review:optimize', async (event, { outDir, caseVo }) => {
+  // AI 审查后优化用例（支持流式输出）
+  ipcMain.handle('review:optimize', async (event, { outDir, caseVo, findings, aiSuggestions }) => {
+    log.info('IPC: review:optimize 开始');
     try {
       const reviewer = new ReviewerAgent({ outDir });
-      const result = await reviewer._aiOptimize(caseVo);
+      const sendChunk = (chunk) => { if (mainWindow) mainWindow.webContents.send('review:aiChunk', chunk); };
+      const result = await reviewer._aiOptimize(caseVo, findings, aiSuggestions, sendChunk);
+      log.info(`IPC: review:optimize 完成, 成功: ${!!result.optimizedCase}`);
       return { success: true, ...result };
     } catch (e) {
+      log.error(`IPC: review:optimize 失败: ${e.message}`);
+      return { success: false, error: e.message };
+    }
+  });
+
+  // AI 单条接口优化（支持流式输出）
+  ipcMain.handle('review:optimizeSingle', async (event, { outDir, caseVo, apiIndex, findings, aiSuggestions }) => {
+    log.info(`IPC: review:optimizeSingle 开始, 接口索引: ${apiIndex}`);
+    try {
+      const reviewer = new ReviewerAgent({ outDir });
+      const sendChunk = (chunk) => { if (mainWindow) mainWindow.webContents.send('review:aiChunk', chunk); };
+      const result = await reviewer._aiOptimizeSingle(caseVo, apiIndex, findings, aiSuggestions, sendChunk);
+      log.info(`IPC: review:optimizeSingle 完成, 成功: ${!!result.optimizedApi}, 消息: ${result.message || ''}`);
+      return { success: true, ...result };
+    } catch (e) {
+      log.error(`IPC: review:optimizeSingle 失败: ${e.message}`);
       return { success: false, error: e.message };
     }
   });
@@ -907,11 +1119,14 @@ function registerIpcHandlers(ipcMain, mainWindow) {
     try {
       ensureDataPoolsDir();
       const { TestDataPool } = require('../models/TestDataPool');
-      const pool = poolData instanceof TestDataPool ? poolData : new TestDataPool(poolData);
+      const data = typeof poolData === 'object' && poolData !== null ? poolData : {};
+      // 支持传入 envId 与环境关联
+      const pool = poolData instanceof TestDataPool ? poolData : new TestDataPool(data);
+      if (data.envId) pool.envId = data.envId;
       pool.updatedAt = new Date().toISOString();
       const filePath = getDataPoolFilePath(pool.id);
       fs.writeFileSync(filePath, JSON.stringify(pool.toJSON(), null, 2), 'utf-8');
-      log.info(`数据池已保存: ${pool.name} (${pool.id})`);
+      log.info(`数据池已保存: ${pool.name} (${pool.id}) envId=${pool.envId || '无'}`);
       return { success: true, id: pool.id };
     } catch (e) {
       log.error(`保存数据池失败: ${e.message}`);
@@ -934,6 +1149,7 @@ function registerIpcHandlers(ipcMain, mainWindow) {
             fieldCount: (data.fields || []).length,
             rowCount: (data.rows || []).length,
             tags: data.tags || [],
+            envId: data.envId || null,
             createdAt: data.createdAt,
             updatedAt: data.updatedAt,
           };
@@ -1128,6 +1344,47 @@ function registerIpcHandlers(ipcMain, mainWindow) {
       return { success: true, ...result };
     } catch (e) {
       log.error(`数据驱动回归运行失败: ${e.message}`);
+      return { success: false, error: e.message };
+    }
+  });
+
+  // ============ 修改追踪标签 ============
+
+  // 读取修改标签记录
+  ipcMain.handle('modification:list', async (event, outDir) => {
+    if (!outDir) return [];
+    const modPath = path.join(outDir, 'case-modifications.json');
+    if (!fs.existsSync(modPath)) return [];
+    try {
+      return JSON.parse(fs.readFileSync(modPath, 'utf-8'));
+    } catch { return []; }
+  });
+
+  // 追加修改标签记录
+  ipcMain.handle('modification:append', async (event, outDir, record) => {
+    if (!outDir) return { success: false, error: 'outDir 为空' };
+    const modPath = path.join(outDir, 'case-modifications.json');
+    let records = [];
+    if (fs.existsSync(modPath)) {
+      try { records = JSON.parse(fs.readFileSync(modPath, 'utf-8')); } catch { records = []; }
+    }
+    if (!Array.isArray(records)) records = [];
+    records.push({
+      timestamp: new Date().toISOString(),
+      stage: record.stage || 'unknown',
+      type: record.type || 'edit',
+      apiIndices: record.apiIndices || [],
+      summary: record.summary || '',
+      details: record.details || '',
+    });
+    // 最多保留 200 条
+    while (records.length > 200) records.shift();
+    try {
+      const dir = path.dirname(modPath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(modPath, JSON.stringify(records, null, 2), 'utf-8');
+      return { success: true };
+    } catch (e) {
       return { success: false, error: e.message };
     }
   });

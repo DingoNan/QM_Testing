@@ -17,7 +17,7 @@ class FieldDef {
     this.name = opts.name || '';
     this.type = opts.type || 'string';
     this.alias = opts.alias || [];
-    this.defaultValue = opts.defaultValue !== undefined ? opts.defaultValue : '';
+    this.defaultValue = opts.defaultValue;
     this.description = opts.description || '';
   }
 
@@ -70,12 +70,14 @@ class TestDataPool {
    * @param {DataRow[]} opts.rows - 数据行
    * @param {string[]} opts.tags - 标签
    * @param {Object} opts.control - 高级控制
+   * @param {string} [opts.envId] - 关联的环境 ID
    */
   constructor(opts = {}) {
     this.id = opts.id || `pool_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     this.name = opts.name || '';
     this.description = opts.description || '';
     this.source = opts.source || 'manual';
+    this.envId = opts.envId || null;
     this.fields = (opts.fields || []).map(f => f instanceof FieldDef ? f : new FieldDef(f));
     this.rows = (opts.rows || []).map(r => r instanceof DataRow ? r : new DataRow(r));
     this.tags = opts.tags || [];
@@ -345,6 +347,7 @@ class TestDataPool {
       name: this.name,
       description: this.description,
       source: this.source,
+      envId: this.envId,
       fields: this.fields.map(f => f.toJSON()),
       rows: this.rows.map(r => r.toJSON()),
       tags: this.tags,

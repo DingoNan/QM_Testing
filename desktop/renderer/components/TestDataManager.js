@@ -6,6 +6,7 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
   const [showImport, setShowImport] = React.useState(false);
   const [importMode, setImportMode] = React.useState('csv');
   const [editPool, setEditPool] = React.useState(null);
+  const [editingPool, setEditingPool] = React.useState(null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [preview, setPreview] = React.useState(null);
 
@@ -71,9 +72,11 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
   };
 
   const handleCreatePool = () => {
-    if (!newPool.name.trim()) { window.appApi.showToast('请输入数据池名称', 'warning'); return; }
-    onSave(newPool);
+    if (!newPool.name.trim()) { window.appApi.showToast('\u8BF7\u8F93\u5165\u6570\u636E\u6C60\u540D\u79F0', 'warning'); return; }
+    const poolToSave = editingPool ? { ...editingPool, ...newPool } : newPool;
+    onSave(poolToSave);
     setShowCreate(false);
+    setEditingPool(null);
     setNewPool({
       name: '', description: '', source: 'manual',
       fields: [{ name: 'field_1', type: 'string', alias: [], defaultValue: '', description: '' }],
@@ -128,18 +131,78 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
       window.appApi.showToast('请输入数据', 'warning');
       return;
     }
-    const { TestDataPool } = require('../../../models/TestDataPool');
-    const pool = TestDataPool.fromPaste(content);
-    setNewPool(prev => ({
-      ...prev,
-      name: pool.name,
-      source: 'paste',
-      fields: pool.fields,
-      rows: pool.rows,
-      control: pool.control,
-    }));
-    setPreview({ fields: pool.fields.map(f => f.name), rows: pool.rows.slice(0, 5).map(r => r.values), totalRows: pool.rows.length });
+    // 内联解析逻辑（替代 require models/TestDataPool）
+    const lines = content.replace(/\r\n/g, '\n').split('\n').filter(l => l.trim());
+    if (lines.length < 1) { window.appApi.showToast('无有效数据', 'warning'); return; }
+    const hasCommas = content.includes(',');
+    const hasTabs = content.includes('\t');
+    const delimiter = hasCommas ? ',' : (hasTabs ? '\t' : null);
+    let fields, rows;
+    if (delimiter === null) {
+      // JSON 数组格式
+      try {
+        const jsonData = JSON.parse(content);
+        if (!Array.isArray(jsonData) || jsonData.length === 0) throw new Error('JSON 数组为空');
+        const keys = Object.keys(jsonData[0]);
+        fields = keys.map(k => ({ name: k, type: 'string', alias: [], defaultValue: '', description: '' }));
+        rows = jsonData.map(item => ({ values: Object.fromEntries(keys.map(k => [k, String(item[k] ?? '')])), enabled: true }));
+      } catch (e) {
+        window.appApi.showToast('解析失败: ' + e.message, 'error');
+        return;
+      }
+    } else {
+      // CSV/TXT 格式
+      const headerTokens = lines[0].split(delimiter).map(t => t.trim());
+      fields = headerTokens.map(h => {
+        const isChinese = /[\u4e00-\u9fa5]/.test(h);
+        return { name: isChinese ? 'field_' + fields.indexOf(h) : h, type: 'string', alias: isChinese ? [h] : [], defaultValue: '', description: isChinese ? h : '' };
+      });
+      // 修正 field名称生成（上面用 indexOf 不可靠，这里重新生成）
+      fields = headerTokens.map((h, i) => {
+        const isChinese = /[\u4e00-\u9fa5]/.test(h);
+        return { name: isChinese ? 'field_' + i : h, type: 'string', alias: isChinese ? [h] : [], defaultValue: '', description: isChinese ? h : '' };
+      });
+      rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const tokens = lines[i].split(delimiter);
+        const values = {};
+        fields.forEach((f, j) => { values[f.name] = (tokens[j] || '').trim(); });
+        rows.push({ values, enabled: true });
+      }
+    }
+    const pool = {
+      name: '粘贴导入数据', source: 'paste', fields, rows,
+      control: { recycleOnEnd: true, randomOrder: false, sharingMode: 'all' },
+    };
+    setNewPool(prev => ({ ...prev, ...pool }));
+    setPreview({ fields: fields.map(f => f.name), rows: rows.slice(0, 5).map(r => r.values), totalRows: rows.length });
     setShowImport(false);
+    setShowCreate(true);
+  };
+
+  const handleEditClick = async (e, pool) => {
+    e.stopPropagation();
+    let sourceData = pool;
+    if (editPool?.id === pool.id) {
+      sourceData = editPool;
+    } else if (!pool.fields && window.appApi?.dataPoolGet) {
+      try {
+        const result = await window.appApi.dataPoolGet(pool.id);
+        if (result && result.success && result.pool) {
+          sourceData = result.pool;
+        }
+      } catch (err) { console.warn('\u52A0\u8F7D\u6570\u636E\u6C60\u8BE6\u60C5\u5931\u8D25:', err); }
+    }
+    setNewPool({
+      name: sourceData.name || '',
+      description: sourceData.description || '',
+      source: sourceData.source || 'manual',
+      fields: sourceData.fields || [],
+      rows: sourceData.rows || [],
+      tags: sourceData.tags || [],
+      control: sourceData.control || { recycleOnEnd: true, randomOrder: false, sharingMode: 'all' },
+    });
+    setEditingPool(sourceData);
     setShowCreate(true);
   };
 
@@ -227,19 +290,39 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
               key: pool.id,
               className: 'card',
               style: { marginBottom: 8, cursor: 'pointer' },
-              onClick: () => setEditPool(editPool?.id === pool.id ? null : pool),
+              onClick: async () => {
+                if (editPool?.id === pool.id) { setEditPool(null); return; }
+                // 列表摘要数据无 fields/rows，展开时异步加载完整数据
+                if (!pool.fields && window.appApi?.dataPoolGet) {
+                  try {
+                    const full = await window.appApi.dataPoolGet(pool.id);
+                    if (full && full.success && full.pool) {
+                      setEditPool(full.pool);
+                      return;
+                    }
+                  } catch (e) { console.warn('加载数据池详情失败:', e); }
+                }
+                setEditPool(pool);
+              },
             }, [
               React.createElement('div', { className: 'card-header', key: 'h' }, [
                 React.createElement('div', { className: 'card-title', key: 't' }, [
-                  pool.name || '未命名',
+                  pool.name || '\u672A\u547D\u540D',
                   React.createElement('span', { className: 'tag tag-sm tag-info', style: { marginLeft: 8, fontSize: 10 } }, pool.source || 'manual'),
-                  !pool.source && React.createElement('span', { className: 'tag tag-sm tag-warning', style: { marginLeft: 8, fontSize: 10 } }, '手动'),
+                  !pool.source && React.createElement('span', { className: 'tag tag-sm tag-warning', style: { marginLeft: 8, fontSize: 10 } }, '\u624B\u52A8'),
                 ]),
-                React.createElement('button', {
-                  className: 'btn btn-sm btn-danger',
-                  style: { padding: '2px 8px', fontSize: 11 },
-                  onClick: e => { e.stopPropagation(); onDelete(pool.id); },
-                }, '删除'),
+                React.createElement('div', { key: 'actions', style: { display: 'flex', gap: 4 } }, [
+                  React.createElement('button', {
+                    className: 'btn btn-sm',
+                    style: { padding: '2px 8px', fontSize: 11 },
+                    onClick: e => handleEditClick(e, pool),
+                  }, '\u7F16\u8F91'),
+                  React.createElement('button', {
+                    className: 'btn btn-sm btn-danger',
+                    style: { padding: '2px 8px', fontSize: 11 },
+                    onClick: e => { e.stopPropagation(); onDelete(pool.id); },
+                  }, '\u5220\u9664'),
+                ]),
               ]),
               React.createElement('div', { key: 'body', style: { padding: '8px 16px', fontSize: 12, color: 'var(--text-secondary)', display: 'flex', gap: 16 } },
                 pool.fieldCount !== undefined
@@ -251,18 +334,19 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
               // Expanded detail
               editPool?.id === pool.id &&
                 React.createElement('div', { key: 'detail', style: { padding: '12px 16px', borderTop: '1px solid var(--border)', fontSize: 12 } }, [
+                  // 使用 editPool（完整数据）而非 pool（列表摘要）
                   React.createElement('div', { style: { marginBottom: 8, color: 'var(--text-secondary)' } },
-                    pool.description || '暂无描述'),
+                    editPool.description || '暂无描述'),
                   // Control settings
                   React.createElement('div', { style: { marginBottom: 8, display: 'flex', gap: 12, flexWrap: 'wrap' } }, [
-                    React.createElement('span', { key: 'r' }, `超出行为: ${pool.control?.recycleOnEnd ? '循环' : pool.control?.useExistingOnly ? '仅现有' : '报错'}`),
-                    React.createElement('span', { key: 'rd' }, `排序: ${pool.control?.randomOrder ? '随机' : '顺序'}`),
-                    React.createElement('span', { key: 's' }, `共享: ${pool.control?.sharingMode === 'all' ? '全部共享' : pool.control?.sharingMode === 'thread' ? '独立' : '副本'}`),
+                    React.createElement('span', { key: 'r' }, `超出行为: ${editPool.control?.recycleOnEnd ? '循环' : editPool.control?.useExistingOnly ? '仅现有' : '报错'}`),
+                    React.createElement('span', { key: 'rd' }, `排序: ${editPool.control?.randomOrder ? '随机' : '顺序'}`),
+                    React.createElement('span', { key: 's' }, `共享: ${editPool.control?.sharingMode === 'all' ? '全部共享' : editPool.control?.sharingMode === 'thread' ? '独立' : '副本'}`),
                   ]),
                   // Fields preview
                   React.createElement('div', { style: { fontWeight: 600, marginBottom: 4 } }, '字段:'),
                   React.createElement('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 } },
-                    (pool.fields || []).map(f =>
+                    (editPool.fields || []).map(f =>
                       React.createElement('span', { key: f.name, className: 'tag tag-info tag-sm', style: { fontSize: 10 } },
                         `${f.name} (${f.type || 'string'})`)
                     )
@@ -270,9 +354,9 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
                   // Variable reference format (Section 3.3 design)
                   React.createElement('div', { style: { fontWeight: 600, marginBottom: 4, color: 'var(--text-secondary)', fontSize: 11 } }, '变量引用格式:'),
                   React.createElement('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 } },
-                    (pool.fields || []).map(f =>
+                    (editPool.fields || []).map(f =>
                       React.createElement('code', { key: f.name, style: { fontSize: 10, padding: '2px 6px', background: 'var(--surface)', borderRadius: 4, border: '1px solid var(--border)', color: 'var(--primary)' } },
-                        `${data.${pool.name}.${f.name}}`)
+                        '${data.' + editPool.name + '.' + f.name + '}')
                     )
                   ),
                   // Data preview (first 3 rows)
@@ -282,18 +366,18 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
                       React.createElement('thead', { key: 'th' },
                         React.createElement('tr', { style: { background: 'var(--bg-secondary)' } },
                           React.createElement('th', { style: { padding: '4px 8px', width: 28 } }, ''),
-                          (pool.fields || []).map(f =>
+                          (editPool.fields || []).map(f =>
                             React.createElement('th', { key: f.name, style: { padding: '4px 8px', textAlign: 'left', whiteSpace: 'nowrap' } }, f.name)
                           )
                         )
                       ),
                       React.createElement('tbody', { key: 'tb' },
-                        (pool.rows || []).slice(0, 3).map((row, i) =>
+                        (editPool.rows || []).slice(0, 3).map((row, i) =>
                           React.createElement('tr', { key: i, style: { borderBottom: '1px solid var(--border)', opacity: row.enabled !== false ? 1 : 0.4 } },
                             React.createElement('td', { style: { padding: '4px 8px', textAlign: 'center' } },
                               React.createElement('span', { style: { color: row.enabled !== false ? '#16a34a' : '#ccc', fontSize: 12 } }, row.enabled !== false ? '✓' : '✗')
                             ),
-                            (pool.fields || []).map(f =>
+                            (editPool.fields || []).map(f =>
                               React.createElement('td', { key: f.name, style: { padding: '4px 8px', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
                                 String(row.values[f.name] ?? row[f.name] ?? '')
                               )
@@ -303,9 +387,9 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
                       ),
                     ])
                   ),
-                  (pool.rows || []).length > 3 &&
+                  (editPool.rows || []).length > 3 &&
                     React.createElement('div', { style: { fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 } },
-                      `... 还有 ${(pool.rows || []).length - 3} 行`),
+                      `... 还有 ${(editPool.rows || []).length - 3} 行`),
                 ]),
             ])
         ),
@@ -315,12 +399,12 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
     showCreate && React.createElement('div', {
       className: 'modal-overlay', key: 'create-modal',
       style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflow: 'auto', padding: 20 },
-      onClick: () => setShowCreate(false),
+      onClick: () => { setShowCreate(false); setEditingPool(null); },
     }, React.createElement('div', {
       style: { background: 'var(--bg)', padding: 24, borderRadius: 8, minWidth: 600, maxWidth: 800, maxHeight: '80vh', overflow: 'auto' },
       onClick: e => e.stopPropagation(),
     }, [
-      React.createElement('h4', { key: 't', style: { marginBottom: 16 } }, '新建数据池'),
+      React.createElement('h4', { key: 't', style: { marginBottom: 16 } }, editingPool ? '\u7F16\u8F91\u6570\u636E\u6C60' : '\u65B0\u5EFA\u6570\u636E\u6C60'),
       // Name
       React.createElement('div', { className: 'form-row', key: 'name-row' }, [
         React.createElement('div', { className: 'form-group', key: 'name', style: { flex: 2 } },
@@ -486,7 +570,7 @@ const TestDataManager = ({ dataPools, onSave, onDelete, onImportCsv, onImportTxt
       ),
       // Actions
       React.createElement('div', { key: 'actions', style: { display: 'flex', gap: 12, justifyContent: 'flex-end' } }, [
-        React.createElement('button', { className: 'btn', onClick: () => setShowCreate(false) }, '取消'),
+        React.createElement('button', { className: 'btn', onClick: () => { setShowCreate(false); setEditingPool(null); } }, '\u53D6\u6D88'),
         React.createElement('button', { className: 'btn btn-primary', onClick: handleCreatePool }, '保存数据池'),
       ]),
     ])),

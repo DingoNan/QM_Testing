@@ -9,3 +9,12 @@ Desktop.ini
 __pycache__/
 *.pyc
 desktop/logs/
+desktop/test-output/
+desktop/data/dataPools/
+desktop/data/reports/
+desktop/data/ai-providers.json
+desktop/data/token-usage.json
+desktop/data/review-rule-config.json
+.idea/
+.pytest_cache/
+.ruff_cache/

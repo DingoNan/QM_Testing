@@ -71,9 +71,15 @@ const api = {
   createReviewRule(rule)       { return ipcRenderer.invoke('review:createRule', rule); },
   deleteReviewRule(ruleId)     { return ipcRenderer.invoke('review:deleteRule', ruleId); },
   updateReviewRule(ruleId, updates) { return ipcRenderer.invoke('review:updateRule', ruleId, updates); },
+  saveRuleConfigs(configs)     { return ipcRenderer.invoke('review:saveRuleConfigs', configs); },
+  loadRuleConfigs()             { return ipcRenderer.invoke('review:loadRuleConfigs'); },
 
   // === AI 优化 ===
   runAiOptimize(params)        { return ipcRenderer.invoke('review:optimize', params); },
+  runAiOptimizeSingle(params)  { return ipcRenderer.invoke('review:optimizeSingle', params); },
+
+  // === AI 流式事件 ===
+  onReviewAiChunk(cb)          { return this.onEvent('review:aiChunk', cb); },
 
   // === 回归验证 ===
   runRegression(params)           { return ipcRenderer.invoke('regression:run', params); },
@@ -113,6 +119,13 @@ const api = {
 
   // === 增强回归 ===
   runRegressionWithData(params) { return ipcRenderer.invoke('regression:runWithData', params); },
+
+  // === 重新组装用例（数据绑定后） ===
+  rerunAssembler(params) { return ipcRenderer.invoke('pipeline:rerunAssembler', params); },
+
+  // === 修改追踪标签 ===
+  modificationList(outDir)     { return ipcRenderer.invoke('modification:list', outDir); },
+  modificationAppend(outDir, record) { return ipcRenderer.invoke('modification:append', outDir, record); },
 };
 
 // 向后兼容: window.api

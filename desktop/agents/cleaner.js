@@ -59,13 +59,14 @@ class CleanerAgent extends BaseAgent {
 
     log.info(`过滤 ${noiseCount} 条噪音，剩余 ${kept.length} 条`);
 
-    // Step 2: URL 归一化 + 去重
+    // Step 2: URL 归一化 + 去重（使用原始 URL 去重，保留每个唯一请求）
     const seen = new Set();
     const deduped = [];
     let dupCount = 0;
     for (const r of kept) {
       const normUrl = this._normalizeUrl(r.url);
-      const key = `${r.method}|${normUrl}`;
+      // 使用原始 URL 去重，避免归一化导致不同参数的接口被合并
+      const key = `${r.method}|${r.url}`;
       if (seen.has(key)) {
         dupCount++;
         continue;
