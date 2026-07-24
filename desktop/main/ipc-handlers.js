@@ -993,6 +993,22 @@ function registerIpcHandlers(ipcMain, mainWindow) {
     return null;
   });
 
+  // 应用候选修改
+  ipcMain.handle('review:applyCandidates', async (event, { outDir, caseVo, applyItems }) => {
+    try {
+      const reviewer = new ReviewerAgent({ outDir });
+      const updated = reviewer._applyCandidates(caseVo, applyItems);
+      // 写回文件
+      if (outDir) {
+        fs.writeFileSync(path.join(outDir, 'case-save.json'), JSON.stringify(updated, null, 2), 'utf-8');
+        fs.writeFileSync(path.join(outDir, 'case-save-review.json'), JSON.stringify(updated, null, 2), 'utf-8');
+      }
+      return { success: true, caseVo: updated };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  });
+
   // ============ AI 优化 ============
 
   // AI 审查后优化用例（支持流式输出）

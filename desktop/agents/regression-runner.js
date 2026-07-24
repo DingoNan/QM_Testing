@@ -288,6 +288,7 @@ class RegressionRunnerAgent extends BaseAgent {
     const resolverContext = {
       envConfig,
       dataRow,
+      params: extraOpts.params || extraOpts.globalParams || {},
       ctxVars: { ...contextVars, ...ctxVars },
       seqResponses: contextVars,
       linkedRecords,

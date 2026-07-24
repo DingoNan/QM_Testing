@@ -1,6 +1,6 @@
 /**
  * VarResolver.js - 统一变量解析器
- * 支持 5 层命名空间变量解析和运行时函数调用
+ * 支持 5 层命名空间变量解析、平台函数和运行时函数调用
  *
  * 变量命名空间（优先级从内到外）:
  *   ${ctx.xxx}  - 上下文变量（当前迭代/循环的临时状态）
@@ -11,9 +11,16 @@
  *
  * 运行时函数:
  *   ${sys.funcName(args)} - 在 VariableResolver._resolveFunc 中处理
+ *
+ * 平台函数（无命名空间前缀）:
+ *   ${Tel} / ${IC} / ${RandomUUID} / ${Random(N)} / ${Time(,Nd)}
+ *   ${DateTime(fmt,Nd)} / ${MD5Encode(s,opt)} / ${Calculate[expr]} / ${Param(id)}
+ *   - 解析在 _resolveExpression 步骤 0 中先行处理
+ *   - 支持嵌套: ${MD5Encode(${1.responseBody.data.key})}
  */
 
 const { FunctionRegistry } = require('./FunctionRegistry');
+const { parsePlatformCall, callFunction, isSignFunction } = require('../core/function-utils');
 
 class VariableResolver {
   /**
@@ -39,15 +46,58 @@ class VariableResolver {
    */
   resolve(str, context) {
     if (!str || typeof str !== 'string') return str;
-    // Replace ${...} first, then $var (short form)
-    let result = str.replace(/\$\{([^}]+)\}/g, (match, expr) => {
-      return this._resolveExpression(expr.trim(), context) || match;
-    });
-    // Short form $data.xxx, $env.xxx, $seq.N.xxx, $ctx.xxx, $sys.xxx
-    result = result.replace(/\$(data|env|seq|ctx|sys)\.([a-zA-Z_][\w.]*(?:\([^)]*\))?)/g, (match, ns, path) => {
-      const fullExpr = `${ns}.${path}`;
-      return this._resolveExpression(fullExpr, context) || match;
-    });
+    // 迭代解析直到不再变化（支持嵌套: ${MD5Encode(${1.token})}）
+    let prev;
+    let result = str;
+    let iterations = 0;
+    const MAX_ITER = 10;
+    do {
+      prev = result;
+      result = this._resolveAllExpressions(result, context);
+      iterations++;
+    } while (result !== prev && iterations < MAX_ITER);
+    return result;
+  }
+
+  /**
+   * 用花括号计数方式提取并解析所有 ${...} 表达式
+   * 正确支持嵌套，如 ${MD5Encode(${1.token})}
+   */
+  _resolveAllExpressions(str, context) {
+    let result = '';
+    let i = 0;
+    while (i < str.length) {
+      if (str[i] === '$' && i + 1 < str.length && str[i + 1] === '{') {
+        const start = i;
+        i += 2; // skip ${
+        let depth = 1;
+        let expr = '';
+        while (i < str.length && depth > 0) {
+          if (str[i] === '{') depth++;
+          else if (str[i] === '}') depth--;
+          if (depth > 0) expr += str[i];
+          i++;
+        }
+        // i is now past the closing }
+        const resolved = this._resolveExpression(expr.trim(), context);
+        result += resolved !== null ? resolved : str.substring(start, i);
+      } else if (str[i] === '$' && /[a-zA-Z_]/.test(str[i + 1] || '')) {
+        // Short form: $data.xxx, $env.xxx, $seq.N.xxx, $ctx.xxx, $sys.xxx
+        const match = str.substring(i).match(/^\$(data|env|seq|ctx|sys)\.(\w+(?:\.\w+)*(?:\([^)]*\))?)/);
+        if (match) {
+          const fullExpr = match[1] + '.' + match[2];
+          const resolved = this._resolveExpression(fullExpr, context);
+          result += resolved !== null ? resolved : str.substring(i, i + match[0].length);
+          i += match[0].length;
+        } else {
+          result += str[i];
+          i++;
+        }
+      } else {
+        result += str[i];
+        i++;
+      }
+    }
     return result;
   }
 
@@ -84,6 +134,39 @@ class VariableResolver {
     if (!expr) return null;
 
     const ctx = context || {};
+
+    // 0. Platform function (${Tel}, ${IC}, ${RandomUUID}, ${MD5Encode(s)}, etc.)
+    const platformCall = parsePlatformCall(expr);
+    if (platformCall) {
+      const { name, args } = platformCall;
+      // Resolve args that may contain seq/data/ctx references
+      const resolvedArgs = args.map(a => {
+        // Handle ${...} — strip both $ and braces
+        if (a.startsWith('${') && a.endsWith('}')) {
+          const inner = a.slice(2, -1);
+          const resolved = this._resolveExpression(inner, context);
+          return resolved !== null ? resolved : a;
+        }
+        if (a.startsWith('$')) {
+          const resolved = this._resolveExpression(a.substring(1), context);
+          return resolved !== null ? resolved : a;
+        }
+        return a;
+      });
+      // Special handling for Param(id)
+      if (name === 'Param') {
+        const params = ctx.params || ctx.globalParams || {};
+        return resolvedArgs[0] && params[resolvedArgs[0]] !== undefined
+          ? String(params[resolvedArgs[0]]) : '';
+      }
+      // Special handling for Calculate[expr] - expr may contain nested ${seq.xxx}
+      if (name === 'Calculate') {
+        const resolvedBody = this.resolve(resolvedArgs[0] || '', context);
+        const { genCalculate } = require('../core/function-utils');
+        return genCalculate(resolvedBody);
+      }
+      return callFunction(name, resolvedArgs);
+    }
 
     // 1. sys function call with parentheses
     if (expr.startsWith('sys.') && /\(.*\)/.test(expr)) {

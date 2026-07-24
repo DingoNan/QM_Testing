@@ -30,6 +30,11 @@ const ReviewPage = () => {
   const [optimizing, setOptimizing] = React.useState(false);
   const [optimizeResult, setOptimizeResult] = React.useState(null);
 
+  // 候选扫描
+  const [candidates, setCandidates] = React.useState([]);
+  const [selectedCandidates, setSelectedCandidates] = React.useState({});
+  const [showCandidates, setShowCandidates] = React.useState(false);
+
   // AI 流式日志
   const [aiLog, setAiLog] = React.useState('');
   const aiLogRef = React.useRef('');
@@ -101,7 +106,13 @@ const ReviewPage = () => {
         // 检查已保存的审查报告
         if (state.outDir) {
           const report = await window.appApi.readReviewReport(state.outDir);
-          if (report) setReviewResult(report);
+          if (report) {
+            setReviewResult(report);
+            if (report.candidates) {
+              setCandidates(report.candidates);
+              setShowCandidates(report.candidates.length > 0);
+            }
+          }
         }
 
         // 检查 AI Provider
@@ -202,6 +213,10 @@ const ReviewPage = () => {
       });
       if (result.success) {
         setReviewResult(result);
+        if (result.candidates) {
+          setCandidates(result.candidates);
+          setShowCandidates(result.candidates.length > 0);
+        }
         window.appApi.showToast('审查完成，发现 ' + (result.stats?.failedCount || 0) + ' 个问题', 'success');
       } else {
         window.appApi.showToast('审查失败: ' + (result.error || '未知错误'), 'error');
@@ -263,6 +278,48 @@ const ReviewPage = () => {
   const rejectOptimized = () => {
     setOptimizeResult(null);
     window.appApi.showToast('已拒绝 AI 优化结果', 'info');
+  };
+
+  const handleApplyCandidates = async () => {
+    const selectedIds = Object.entries(selectedCandidates)
+      .filter(([, v]) => v)
+      .map(([k]) => k);
+    if (selectedIds.length === 0) {
+      window.appApi.showToast('请先选择要应用的候选', 'warning');
+      return;
+    }
+    const applyItems = candidates
+      .filter(c => selectedIds.includes(c.candidate_id))
+      .map(c => ({
+        candidate_id: c.candidate_id,
+        action: c.action,
+        actionPayload: c.actionPayload,
+        apiIndex: c.apiIndex,
+      }));
+    const state = pipelineStore.getState();
+    const outDir = state.outDir;
+    const caseVo = pipelineResult?.caseVo || state.pipelineResult?.caseVo;
+    if (!caseVo || !outDir) {
+      window.appApi.showToast('缺少用例数据或输出目录', 'error');
+      return;
+    }
+    try {
+      const result = await window.appApi.applyCandidates(outDir, caseVo, applyItems);
+      if (result.success) {
+        const updated = { ...pipelineResult, caseVo: result.caseVo };
+        setPipelineResult(updated);
+        pipelineStore.setState({ pipelineResult: updated });
+        // 清除已应用的候选
+        setCandidates(prev => prev.filter(c => !selectedIds.includes(c.candidate_id)));
+        setSelectedCandidates({});
+        initAssertions(updated);
+        window.appApi.showToast('已应用 ' + selectedIds.length + ' 项候选修改', 'success');
+      } else {
+        window.appApi.showToast('应用候选失败: ' + (result.error || ''), 'error');
+      }
+    } catch (e) {
+      window.appApi.showToast('应用候选失败: ' + e.message, 'error');
+    }
   };
 
   // 单条接口 AI 优化
@@ -740,6 +797,87 @@ const ReviewPage = () => {
         ]),
       ]),
     ]),
+
+      // 候选扫描结果
+      candidates.length > 0 && React.createElement('div', {
+        className: 'review-candidates-panel', key: 'candidates',
+        style: { marginTop: 8, border: '1px solid var(--border)', borderRadius: 6, padding: 12, background: 'var(--bg-secondary, #f8f9fa)' },
+      }, [
+        React.createElement('div', { key: 'hdr', style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 } }, [
+          React.createElement('h4', { key: 't', style: { margin: 0, fontSize: 14 } }, '候选扫描（' + candidates.length + ' 项建议）'),
+          React.createElement('div', { key: 'actions', style: { display: 'flex', gap: 8 } }, [
+            React.createElement('button', {
+              className: 'btn btn-sm',
+              onClick: () => {
+                const all = {};
+                candidates.forEach(c => { all[c.candidate_id] = true; });
+                setSelectedCandidates(all);
+              },
+              style: { fontSize: 11 },
+              key: 'sa',
+            }, '全选'),
+            React.createElement('button', {
+              className: 'btn btn-sm',
+              onClick: () => setSelectedCandidates({}),
+              style: { fontSize: 11 },
+              key: 'da',
+            }, '取消'),
+            React.createElement('button', {
+              className: 'btn btn-sm', onClick: handleApplyCandidates, key: 'apply',
+              style: { background: '#27ae60', color: '#fff' },
+            }, '应用选中'),
+          ]),
+        ]),
+        React.createElement('div', { key: 'list', style: { maxHeight: 300, overflowY: 'auto' } },
+          candidates.map(c => React.createElement('div', {
+            key: c.candidate_id,
+            style: {
+              padding: '6px 8px', marginBottom: 4, borderRadius: 4,
+              background: selectedCandidates[c.candidate_id] ? 'var(--bg-selected, #e8f5e9)' : 'var(--bg)',
+              border: '1px solid var(--border)',
+              fontSize: 12,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+            },
+            onClick: () => {
+              setSelectedCandidates(prev => ({
+                ...prev,
+                [c.candidate_id]: !prev[c.candidate_id],
+              }));
+            },
+          }, [
+            React.createElement('input', {
+              type: 'checkbox',
+              checked: !!selectedCandidates[c.candidate_id],
+              readOnly: true,
+              style: { marginTop: 2 },
+              key: 'cb',
+            }),
+            React.createElement('div', { key: 'body', style: { flex: 1 } }, [
+              React.createElement('div', { key: 'label', style: { fontWeight: 600, marginBottom: 2 } }, [
+                c.label || c.type,
+                React.createElement('span', {
+                  key: 'tag',
+                  style: {
+                    marginLeft: 6, fontSize: 10, padding: '1px 6px', borderRadius: 3,
+                    background: c.severity === 'warning' ? '#fff3cd' : '#e3f2fd',
+                    color: c.severity === 'warning' ? '#856404' : '#1565c0',
+                  },
+                }, c.type),
+                React.createElement('span', { key: 'api', style: { marginLeft: 6, color: 'var(--text-secondary)', fontSize: 11 } },
+                  c.apiName ? (c.apiName + (c.apiUrl ? ': ' + c.apiUrl.substring(0, 40) : '')) : ''),
+              ]),
+              React.createElement('div', { key: 'detail', style: { color: 'var(--text-secondary)', fontSize: 11, marginTop: 2 } }, [
+                React.createElement('span', { key: 'loc', style: { marginRight: 8 } }, '位置: ' + (c.location || '')),
+                c.current_value && React.createElement('span', { key: 'val', style: { marginRight: 8 } }, '当前值: ' + c.current_value),
+              ]),
+              c.suggestion && React.createElement('div', { key: 'sug', style: { fontSize: 11, color: '#2e7d32', marginTop: 2 } }, c.suggestion),
+            ]),
+          ]))
+        ),
+      ]),
 
     // Rules Editor Panel
     showRules && rules && React.createElement('div', { className: 'review-rules-panel', key: 'rules-panel' }, [

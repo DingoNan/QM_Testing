@@ -73,6 +73,7 @@ const api = {
   updateReviewRule(ruleId, updates) { return ipcRenderer.invoke('review:updateRule', ruleId, updates); },
   saveRuleConfigs(configs)     { return ipcRenderer.invoke('review:saveRuleConfigs', configs); },
   loadRuleConfigs()             { return ipcRenderer.invoke('review:loadRuleConfigs'); },
+  applyCandidates(outDir, caseVo, applyItems) { return ipcRenderer.invoke('review:applyCandidates', { outDir, caseVo, applyItems }); },
 
   // === AI 优化 ===
   runAiOptimize(params)        { return ipcRenderer.invoke('review:optimize', params); },

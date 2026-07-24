@@ -318,6 +318,12 @@ class ReviewerAgent extends BaseAgent {
 
     this._updateProgress(50, `规则审查完成，共 ${findings.length} 个问题`);
 
+    // Step 2.5: 候选扫描
+    const candidates = this._scanCandidates(apis, linkedRecords);
+    if (candidates.length > 0) {
+      log.info(`候选扫描完成，发现 ${candidates.length} 个候选`);
+    }
+
     // Step 3: AI 审查（可选）
     let aiReview = null;
     if (useAI) {
@@ -352,20 +358,26 @@ class ReviewerAgent extends BaseAgent {
     this._writeJSON(path.join(this.outDir, 'review-report.json'), {
       stats,
       findings,
+      candidates,
       aiReview,
       ruleConfigs,
       timestamp: new Date().toISOString(),
     });
+
+    // 写入候选列表（供 UI 和 Apply 使用）
+    this._writeJSON(path.join(this.outDir, 'candidates.json'), candidates);
 
     this._updateProgress(100, '智能审查完成');
 
     return {
       stats,
       findings,
+      candidates,
       aiReview,
       ruleConfigs,
       outputFiles: {
         report: path.join(this.outDir, 'review-report.json'),
+        candidates: path.join(this.outDir, 'candidates.json'),
       },
     };
   }
@@ -674,6 +686,259 @@ ${apiFindings.map(f => `- [${f.severity}] ${f.ruleName}: ${f.message}`).join('\n
       log.error(`AI 单条优化失败: ${e.message}`);
       return { optimizedApi: null, error: e.message };
     }
+  }
+
+  /**
+   * 扫描 5 类候选问题
+   * 1. hardcoded_seed_value - 硬编码测试数据（手机号/邮箱/UUID/身份证）
+   * 2. likely_auxiliary_interface - 辅助接口（/page /list /dict 等）
+   * 3. isolated_interface - 孤立接口（无上下游依赖）
+   * 4. unstable_array_index - 数组下标引用不稳定
+   * 5. unreplaced_path_segment - URL 残留数字路径段
+   */
+  _scanCandidates(apis, linkedRecords) {
+    const candidates = [];
+    let seqCounter = 0;
+
+    // 收集每个接口的引用图
+    const apiRefs = {}; // apiIndex -> { refs: Set<targetIdx>, referencedBy: Set<sourceIdx> }
+    for (let i = 0; i < apis.length; i++) {
+      apiRefs[i] = { refs: new Set(), referencedBy: new Set() };
+    }
+
+    // 从每个接口的 requestBody, apiUrl 中提取 ${seq.N} 引用
+    for (let i = 0; i < apis.length; i++) {
+      const api = apis[i];
+      const allText = [
+        api.apiUrl || '',
+        ...Object.values(api.requestHeaders || {}).map(String),
+        typeof api.requestBody === 'string' ? api.requestBody : JSON.stringify(api.requestBody || ''),
+      ].join(' ');
+
+      // 找出所有 ${N.path} 或 seq.N 引用
+      const seqRefs = allText.match(/\$\{?(?:seq\.)?(\d+)(?:\.|[}\]])/g) || [];
+      for (const ref of seqRefs) {
+        const idx = parseInt(ref.match(/(\d+)/)[1], 10) - 1;
+        if (!isNaN(idx) && idx >= 0 && idx < apis.length) {
+          apiRefs[idx]?.referencedBy.add(i);
+          apiRefs[i]?.refs.add(idx);
+        }
+      }
+    }
+
+    for (let i = 0; i < apis.length; i++) {
+      const api = apis[i];
+      const apiName = api.apiName || `#${i + 1}`;
+      const apiUrl = api.apiUrl || '';
+      const bodyText = typeof api.requestBody === 'string'
+        ? api.requestBody : JSON.stringify(api.requestBody || '');
+
+      // ========== 1. 硬编码种子值检测 ==========
+      const seedPatterns = [
+        { pattern: /1[3-9]\d{9}/g, label: '手机号', funcSuggestion: '${Tel}' },
+        { pattern: /\b\d{6}(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx]\b/g, label: '身份证号', funcSuggestion: '${IC}' },
+        { pattern: /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/gi, label: 'UUID', funcSuggestion: '${RandomUUID}' },
+        { pattern: /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g, label: '邮箱', funcSuggestion: '${RandomUUID}@test.com' },
+      ];
+
+      for (const { pattern, label, funcSuggestion } of seedPatterns) {
+        const matches = bodyText.match(pattern) || [];
+        for (const val of matches) {
+          // 跳过 exclamation words in assertions
+          const ctxBefore = bodyText.substring(0, bodyText.indexOf(val));
+          if (ctxBefore.endsWith('expectValue') || ctxBefore.endsWith('value')) continue;
+
+          candidates.push({
+            candidate_id: `hc_${seqCounter++}`,
+            type: 'hardcoded_seed_value',
+            severity: 'warning',
+            apiIndex: i,
+            apiName,
+            apiUrl,
+            label: `硬编码${label}`,
+            location: `requestBody`,
+            current_value: val,
+            suggestion: `建议替换为平台函数 ${funcSuggestion}`,
+            action: 'replace_value',
+            actionPayload: { search: val, replace: funcSuggestion },
+          });
+        }
+      }
+
+      // ========== 2. 辅助接口检测 ==========
+      const auxPathPatterns = [
+        /\/(?:get|list|page|query|search|find|select|dict|menu|tree|enum|category|type)\b/i,
+        /\/(?:export|import|download|upload|preview|view|detail)\b/i,
+        /\/(?:count|stat|statistics|sum|total|summary|report)\b/i,
+        /\/check|\/validate|\/verify|\/exist/i,
+      ];
+      if (auxPathPatterns.some(p => p.test(apiUrl))) {
+        // 标记为辅助接口 — 只有不被其他接口引用且自身无 seq 引用时才标记
+        const referenced = apiRefs[i]?.referencedBy.size > 0;
+        const hasRefs = apiRefs[i]?.refs.size > 0;
+        if (!referenced && !hasRefs) {
+          candidates.push({
+            candidate_id: `aux_${seqCounter++}`,
+            type: 'likely_auxiliary_interface',
+            severity: 'info',
+            apiIndex: i,
+            apiName,
+            apiUrl,
+            label: '可能为辅助接口（查询/列表/字典类）',
+            location: 'apiUrl',
+            current_value: apiUrl,
+            suggestion: '建议确认是否必要，可删除或合并到主接口',
+            action: 'review_only',
+          });
+        }
+      }
+
+      // ========== 3. 孤立接口检测 ==========
+      const hasSeqRef = (api.apiUrl || '').includes('\${') || bodyText.includes('\${');
+      if (!hasSeqRef) {
+        const referenced = apiRefs[i]?.referencedBy.size > 0;
+        if (!referenced && i > 0) {
+          candidates.push({
+            candidate_id: `iso_${seqCounter++}`,
+            type: 'isolated_interface',
+            severity: 'info',
+            apiIndex: i,
+            apiName,
+            apiUrl,
+            label: '孤立接口（无上下游依赖）',
+            current_value: apiUrl,
+            suggestion: '确认是否为独立业务接口，可考虑提取为独立用例',
+            action: 'review_only',
+          });
+        }
+      }
+
+      // ========== 4. 不稳定数组下标 ==========
+      // 查找 ${seq.N.xxx[数字]} 模式
+      const arrayIdxMatches = allText.match(/\$\{?(?:seq\.)?\d+\.[^}]*\[\d+\]/g) || [];
+      for (const match of arrayIdxMatches) {
+        candidates.push({
+          candidate_id: `arr_${seqCounter++}`,
+          type: 'unstable_array_index',
+          severity: 'warning',
+          apiIndex: i,
+          apiName,
+          apiUrl,
+          label: '不稳定的数组下标引用',
+          location: `${api.apiName || `#${i + 1}`}.requestBody`,
+          current_value: match,
+          suggestion: `${match} 使用硬编码索引，当响应结构变化时可能断裂，建议改用字段名匹配`,
+          action: 'review_only',
+        });
+      }
+
+      // ========== 5. URL 残留未替换段 ==========
+      // 匹配路径中以数字结尾的部分（且该段不在参考域名中）
+      // 排除常见端口号
+      const urlPathOnly = (apiUrl || '').replace(/^https?:\/\/[^\/]+/, '');
+      const pathSegments = urlPathOnly.split('/').filter(Boolean);
+      for (const seg of pathSegments) {
+        // 全数字且长度 >= 4（排除年份等短数字）
+        if (/^\d{4,}$/.test(seg) && !seg.startsWith('20') && !seg.startsWith('19')) {
+          candidates.push({
+            candidate_id: `url_${seqCounter++}`,
+            type: 'unreplaced_path_segment',
+            severity: 'warning',
+            apiIndex: i,
+            apiName,
+            apiUrl,
+            label: 'URL 路径可能未替换的数字参数',
+            location: `apiUrl segment: ${seg}`,
+            current_value: seg,
+            suggestion: `路径段 '${seg}' 可能是录制时的具体 ID，建议替换为 ${'$'}{seq.N.path} 引用`,
+            action: 'review_only',
+          });
+        }
+      }
+    }
+
+    return candidates;
+  }
+
+  /**
+   * 应用候选修改到 CaseVo
+   * @param {Object} caseVo - 用例对象
+   * @param {Array} applyItems - [{ candidate_id, action, actionPayload }]
+   * @returns {Object} 修改后的 caseVo
+   */
+  _applyCandidates(caseVo, applyItems) {
+    if (!caseVo?.apiVos) return caseVo;
+    const apis = caseVo.apiVos;
+
+    // 收集要删除的 apiIndex
+    const toDelete = new Set();
+    // 收集要替换的值
+    const replacements = []; // { apiIndex, search, replace }
+
+    for (const item of applyItems) {
+      if (item.action === 'replace_value' && item.actionPayload) {
+        replacements.push({
+          apiIndex: item.apiIndex,
+          search: item.actionPayload.search,
+          replace: item.actionPayload.replace,
+        });
+      }
+    }
+
+    // 先执行替换
+    for (const { apiIndex, search, replace } of replacements) {
+      const api = apis[apiIndex];
+      if (!api) continue;
+      if (typeof api.requestBody === 'string') {
+        api.requestBody = api.requestBody.replace(new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replace);
+      } else if (api.requestBody && typeof api.requestBody === 'object') {
+        const bodyStr = JSON.stringify(api.requestBody);
+        api.requestBody = JSON.parse(
+          bodyStr.replace(new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replace)
+        );
+      }
+    }
+
+    // 处理删除
+    if (toDelete.size > 0) {
+      caseVo.apiVos = apis.filter((_, i) => !toDelete.has(i));
+      // 重新编号 orderNum
+      caseVo.apiVos.forEach((api, idx) => {
+        api.orderNum = idx + 1;
+      });
+      // 重映射 ${seq.N} 引用（+ 删除后的偏移）
+      // 构建索引映射
+      const idxMap = {};
+      let newIdx = 0;
+      for (let i = 0; i < apis.length; i++) {
+        if (!toDelete.has(i)) {
+          idxMap[i] = newIdx++;
+        }
+      }
+      const remapRef = (str) => {
+        if (!str || typeof str !== 'string') return str;
+        return str.replace(/\$\{?(?:seq\.)?(\d+)(?:\.)/g, (match, num) => {
+          const oldIdx = parseInt(num, 10) - 1;
+          const newIdx2 = idxMap[oldIdx];
+          if (newIdx2 !== undefined && newIdx2 !== oldIdx) {
+            return match.replace(/(\d+)/, String(newIdx2 + 1));
+          }
+          return match;
+        });
+      };
+      // 对所有接口的引用进行重映射
+      for (const api of caseVo.apiVos) {
+        api.apiUrl = remapRef(api.apiUrl);
+        if (typeof api.requestBody === 'string') {
+          api.requestBody = remapRef(api.requestBody);
+        } else if (api.requestBody) {
+          const str = JSON.stringify(api.requestBody);
+          api.requestBody = JSON.parse(remapRef(str));
+        }
+      }
+    }
+
+    return caseVo;
   }
 }
 
