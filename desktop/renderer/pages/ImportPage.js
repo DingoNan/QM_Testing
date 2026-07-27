@@ -166,6 +166,16 @@ const ImportPage = () => {
   };
 
   const processImportResult = async (result) => {
+    // 物理清除旧 outDir 中的审查报告、候选扫描等残留文件
+    const oldOutDir = pipelineStore.getState().outDir;
+    // 重新导入时清空上一轮的测试数据
+    pipelineStore.clearTestData();
+    if (oldOutDir) {
+      try {
+        // 写入空标记覆盖旧的审查报告，防止 ReviewPage 加载到旧数据
+        await window.appApi.writeFile(oldOutDir + '/review-report.json', { _cleared: true });
+      } catch {}
+    }
     setFile(result);
     const imported = await window.appApi.importRecording(result);
     if (imported) {
@@ -248,6 +258,7 @@ const ImportPage = () => {
         setRecordings(JSON.parse(JSON.stringify(scArr)));
         setSelectedScIdx(0);
         setChanged(true);
+        pipelineStore.clearTestData();
         pipelineStore.setState({
           recording: scArr,
           stats,

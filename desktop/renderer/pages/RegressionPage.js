@@ -20,6 +20,69 @@ const RegressionPage = () => {
   const [editingApiForm, setEditingApiForm] = React.useState(null);
   const [changed, setChanged] = React.useState(false);
 
+  // 实时执行日志与进度
+  const [regressionLogs, setRegressionLogs] = React.useState([]);
+  const [regressionProgress, setRegressionProgress] = React.useState(0);
+  const logContainerRef = React.useRef(null);
+
+  // 自动滚动日志到底部
+  React.useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [regressionLogs]);
+
+  // 监听回归进度事件（进度条用）和日志事件（日志窗口用）
+  React.useEffect(() => {
+    const unsubProgress = window.appApi.onPipelineProgress((msg) => {
+      if (msg.agentId === 'regression-runner') {
+        setRegressionProgress(msg.progress || 0);
+        if (msg.message) {
+          setRegressionLogs(prev => [...prev, {
+            time: new Date().toLocaleTimeString(),
+            message: msg.message,
+            progress: msg.progress || 0,
+          }]);
+        }
+      }
+    });
+    // 监听实时日志（logger 推送），作为进度事件的兜底
+    const unsubLog = window.appApi.onLogEntry((entry) => {
+      if (!runningRef.current) return;
+      if (entry.module === 'RegressionRunner' && entry.message) {
+        // 去掉日志前缀 [时间] [级别] [模块名]，只保留实际内容
+        const cleanMsg = entry.message.replace(/^\[[^\]]*\]\s*\[[^\]]*\]\s*\[[^\]]*\]\s*/, '');
+        // 从日志消息解析进度："接口3/73 GET /xxx" → 3/73 ≈ 4%
+        let prog = 0;
+        const match = cleanMsg.match(/接口(\d+)\/(\d+)/);
+        if (match) {
+          const current = parseInt(match[1], 10);
+          const total = parseInt(match[2], 10);
+          prog = Math.round((current / total) * 85) + 5;
+        } else if (cleanMsg.includes('写入回归报告')) {
+          prog = 95;
+        } else if (cleanMsg.includes('回归验证完成')) {
+          prog = 100;
+        }
+        if (prog > 0) setRegressionProgress(prog);
+        setRegressionLogs(prev => {
+          // 避免重复添加完全相同的日志
+          const last = prev[prev.length - 1];
+          if (last && last.message === cleanMsg) return prev;
+          return [...prev, {
+            time: new Date(entry.timestamp || Date.now()).toLocaleTimeString(),
+            message: cleanMsg,
+            progress: prog,
+          }];
+        });
+      }
+    });
+    return () => { if (unsubProgress) unsubProgress(); if (unsubLog) unsubLog(); };
+  }, []);
+
+  // 用 ref 跟踪 running 状态以便日志回调访问最新值
+  const runningRef = React.useRef(false);
+
   // 修改追踪
   const modificationRecordsRef = React.useRef([]);
   const trackModification = (type, apiIndices, summary, details) => {
@@ -82,7 +145,10 @@ const RegressionPage = () => {
     }
 
     setRunning(true);
+    runningRef.current = true;
     setResults(null);
+    setRegressionLogs([]);
+    setRegressionProgress(0);
     try {
       let result;
 
@@ -103,7 +169,7 @@ const RegressionPage = () => {
         result = await window.appApi.runRegression({ outDir });
       }
 
-      if (result.success) {
+      if (result && result.success) {
         setResults(result);
         const rowLabel = iterationMode === 'loop' && result.stats?.rowCount
           ? ' (数据行: ' + result.stats.rowCount + ')' : '';
@@ -112,6 +178,7 @@ const RegressionPage = () => {
           result.stats?.failed === 0 && result.stats?.error === 0 ? 'success' : 'warning'
         );
         // 自动保存测试报告
+        let savedReportId = null;
         try {
           const reportData = {
             caseName: result.caseName || state.pipelineResult?.caseVo?.name || '',
@@ -120,18 +187,26 @@ const RegressionPage = () => {
             timestamp: result.timestamp || new Date().toISOString(),
             environment: result.environment || '',
             apiCount: result.apiCount || (result.results ? result.results.length : 0),
+            outDir: outDir,
           };
-          await window.appApi.saveRegressionReport(reportData);
+          const saveResult = await window.appApi.saveRegressionReport(reportData);
+          if (saveResult && saveResult.reportId) {
+            savedReportId = saveResult.reportId;
+            // 存入 store 供 ReportsPage 跳转详情用
+            pipelineStore.setState({ lastReportId: savedReportId });
+          }
         } catch (saveErr) {
           console.warn('保存测试报告失败:', saveErr);
         }
-      } else {
+      } else if (result) {
         window.appApi.showToast('回归失败: ' + (result.error || '未知错误'), 'error');
       }
     } catch (e) {
       window.appApi.showToast('回归失败: ' + e.message, 'error');
+    } finally {
+      runningRef.current = false;
+      setRunning(false);
     }
-    setRunning(false);
   };
 
   const toggleExpand = (idx) => {
@@ -753,15 +828,52 @@ const RegressionPage = () => {
         ),
       ]),
 
-    // 执行中状态
-    running && React.createElement('div', {
-      className: 'card',
-      key: 'running',
-      style: { textAlign: 'center', padding: 24 },
-    }, [
-      React.createElement('div', { className: 'loading-spinner', key: 'spinner' }),
-      React.createElement('p', { key: 'text', style: { marginTop: 12, color: 'var(--text-secondary)' } },
-        '正在执行回归验证，请稍候...'),
+    // 执行中状态 — 实时日志窗口+进度条
+    running && React.createElement('div', { className: 'card', key: 'running', style: { marginBottom: 16 } }, [
+      React.createElement('div', { className: 'card-header', key: 'h' }, [
+        React.createElement('div', { className: 'card-title', key: 't' }, [
+          '⏳ 正在执行回归验证',
+          React.createElement('span', { style: { marginLeft: 8, fontSize: 12, color: 'var(--text-secondary)' } },
+            regressionProgress + '%'),
+        ]),
+      ]),
+      // 进度条
+      React.createElement('div', { style: { padding: '0 16px', marginBottom: 8 }, key: 'bar-wrap' },
+        React.createElement('div', {
+          style: {
+            width: '100%', height: 6, background: 'var(--border)', borderRadius: 3,
+            overflow: 'hidden',
+          },
+        },
+          React.createElement('div', {
+            style: {
+              width: regressionProgress + '%', height: '100%',
+              background: 'linear-gradient(90deg, #6366f1, #22c55e)',
+              borderRadius: 3, transition: 'width 0.3s ease',
+            },
+          })
+        )
+      ),
+      // 日志窗口
+      React.createElement('div', {
+        ref: logContainerRef,
+        style: {
+          margin: '0 16px 12px 16px', maxHeight: 280, overflowY: 'auto',
+          background: 'var(--bg-secondary, #1a1a2e)', borderRadius: 6,
+          padding: '8px 12px', fontFamily: 'monospace', fontSize: 12,
+          lineHeight: 1.6, border: '1px solid var(--border)',
+        },
+        key: 'logs',
+      },
+        regressionLogs.length === 0
+          ? React.createElement('div', { style: { color: 'var(--text-tertiary)', textAlign: 'center', padding: 12 } }, '准备中...')
+          : regressionLogs.map((entry, i) =>
+              React.createElement('div', { key: i, style: { color: '#e2e8f0', whiteSpace: 'nowrap' } }, [
+                React.createElement('span', { style: { color: '#64748b', marginRight: 8 } }, entry.time),
+                React.createElement('span', { style: { color: entry.progress >= 100 ? '#22c55e' : '#94a3b8' } }, entry.message),
+              ])
+            )
+      ),
     ]),
 
     // 结果统计

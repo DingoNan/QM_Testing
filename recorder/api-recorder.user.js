@@ -353,7 +353,15 @@
     if (!scenarioName) {
       scenarioName = state.scenarioName || `API录制_${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}_${String(new Date().getHours()).padStart(2,'0')}${String(new Date().getMinutes()).padStart(2,'0')}${String(new Date().getSeconds()).padStart(2,'0')}`;
     }
-    // 清理当前页签的旧数据，保留其他页签的数据（避免页面跳转/跨页签时数据丢失）
+    // 清理所有旧的页签缓存数据，确保新录制会话从干净状态开始
+    // 跨页签录制时其他页签通过 GM_addValueChangeListener 同步，不依赖历史持久化数据
+    try {
+      const keys = typeof GM_listValues === 'function' ? GM_listValues() : [];
+      keys.forEach(key => {
+        if (key.startsWith(TAB_PREFIX)) { try { GM_deleteValue(key); } catch {} }
+      });
+    } catch {}
+    try { GM_deleteValue('qm_active_tabs'); } catch {}
     try { GM_deleteValue(getTabStorageKey()); } catch {}
     state.recording = true;
     state.records = [];
@@ -426,9 +434,20 @@
 
     return { records: allRecords, tabSources };
   }
-
+  
+  /** 清除录制内部字段（导出时去掉无关元数据）*/
+  function stripInternalFields(records) {
+    const INTERNAL_FIELDS = ['tabId', 'tabHost', 'id'];
+    return records.map(r => {
+      const cleaned = { ...r };
+      INTERNAL_FIELDS.forEach(f => delete cleaned[f]);
+      return cleaned;
+    });
+  }
+  
   function buildExportData() {
-    const { records, tabSources } = collectAllRecords();
+    const { records: rawRecords, tabSources } = collectAllRecords();
+    const records = stripInternalFields(rawRecords);
 
     // 从 URL 推断环境信息
     const domains = {};

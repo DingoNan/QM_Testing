@@ -3,6 +3,7 @@
 const HistoryPage = () => {
   const [projects, setProjects] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [selectedItems, setSelectedItems] = React.useState({});
 
   React.useEffect(() => {
     loadProjects();
@@ -19,6 +20,42 @@ const HistoryPage = () => {
       console.warn('加载项目列表失败:', e);
     }
     setLoading(false);
+  };
+
+  const toggleSelect = (outDir) => {
+    setSelectedItems(prev => ({ ...prev, [outDir]: !prev[outDir] }));
+  };
+
+  const toggleSelectAll = () => {
+    const allSelected = projects.length > 0 && projects.every(p => selectedItems[p.outDir]);
+    if (allSelected) {
+      setSelectedItems({});
+    } else {
+      const all = {};
+      projects.forEach(p => { all[p.outDir] = true; });
+      setSelectedItems(all);
+    }
+  };
+
+  const selectedCount = Object.values(selectedItems).filter(Boolean).length;
+
+  const handleBatchDelete = async () => {
+    const toDelete = projects.filter(p => selectedItems[p.outDir]);
+    if (toDelete.length === 0) {
+      window.appApi.showToast('请先选择要删除的项', 'warning');
+      return;
+    }
+    if (!confirm('确定删除选中的 ' + toDelete.length + ' 项历史记录吗？')) return;
+    let successCount = 0;
+    for (const proj of toDelete) {
+      try {
+        await window.appApi.deleteProject(proj.outDir);
+        successCount++;
+      } catch {}
+    }
+    setSelectedItems({});
+    setProjects(prev => prev.filter(p => !selectedItems[p.outDir]));
+    window.appApi.showToast('已删除 ' + successCount + '/' + toDelete.length + ' 项', successCount > 0 ? 'success' : 'error');
   };
 
   const handleLoad = async (proj) => {
@@ -71,12 +108,24 @@ const HistoryPage = () => {
     ]),
 
     React.createElement('div', { className: 'card', key: 'content' }, [
-      React.createElement('div', { className: 'card-header', key: 'h' },
+      React.createElement('div', { className: 'card-header', key: 'h' }, [
         React.createElement('div', { className: 'card-title', key: 't' }, [
           '处理历史',
           React.createElement('span', { className: 'badge', key: 'b' }, projects.length + ' 项'),
         ]),
-      ),
+        React.createElement('div', { key: 'actions', style: { display: 'flex', gap: 6, alignItems: 'center' } },
+          selectedCount > 0
+            ? React.createElement('span', { style: { fontSize: 12, color: 'var(--warning)', marginRight: 4 } }, '已选 ' + selectedCount)
+            : null,
+          React.createElement('button', {
+            className: 'btn btn-sm',
+            onClick: handleBatchDelete,
+            disabled: selectedCount === 0,
+            style: { color: selectedCount > 0 ? '#e74c3c' : 'var(--text-secondary)', fontSize: 12 },
+            key: 'batch-del',
+          }, '批量删除'),
+        ),
+      ]),
 
       loading
         ? React.createElement('div', { className: 'page-loading', key: 'load' }, '加载中...')
@@ -90,6 +139,13 @@ const HistoryPage = () => {
               React.createElement('table', { className: 'table' }, [
                 React.createElement('thead', { key: 'th' },
                   React.createElement('tr', null, [
+                    React.createElement('th', { key: 'cb', style: { width: 36 } },
+                      React.createElement('input', {
+                        type: 'checkbox',
+                        checked: projects.length > 0 && projects.every(p => selectedItems[p.outDir]),
+                        onChange: toggleSelectAll,
+                      }),
+                    ),
                     React.createElement('th', { key: 'name' }, '用例名称'),
                     React.createElement('th', { key: 'time' }, '处理时间'),
                     React.createElement('th', { key: 'apis' }, '接口数'),
@@ -99,7 +155,16 @@ const HistoryPage = () => {
                 ),
                 React.createElement('tbody', { key: 'tb' },
                   projects.map((p, i) =>
-                    React.createElement('tr', { key: i }, [
+                    React.createElement('tr', { key: i,
+                      style: { background: selectedItems[p.outDir] ? 'var(--bg-selected, rgba(99,102,241,0.08))' : '' },
+                    }, [
+                      React.createElement('td', { key: 'cb' },
+                        React.createElement('input', {
+                          type: 'checkbox',
+                          checked: !!selectedItems[p.outDir],
+                          onChange: () => toggleSelect(p.outDir),
+                        }),
+                      ),
                       React.createElement('td', {
                         style: { fontWeight: 500 },
                       }, p.name || '未命名'),

@@ -112,6 +112,13 @@ class Orchestrator extends EventEmitter {
         this.results[agentId] = output;
         this.context[`${agentId}_output`] = output;
 
+        // 如果 Agent 输出包含 environment 信息，传播到 context.envConfig
+        // 确保下游 Agent（如 Assembler）能获取到正确的环境配置
+        if (output && output.environment) {
+          // 优先用 Agent 识别到的环境信息，保留已有字段（如 globalHeaders）
+          this.context.envConfig = { ...this.context.envConfig, ...output.environment };
+        }
+
         this.emit('stage:complete', { name: stage.name, agentId, output });
         await this._yield();
       } catch (error) {
@@ -196,6 +203,12 @@ class Orchestrator extends EventEmitter {
       const output = await agent.execute(input);
       this.results[agent.id] = output;
       this.context[`${agent.id}_output`] = output;
+
+      // 如果 Agent 输出包含 environment 信息，传播到 context.envConfig
+      if (output && output.environment) {
+        this.context.envConfig = { ...this.context.envConfig, ...output.environment };
+      }
+
       this.emit('stage:complete', { name: stage.name, agentId: agent.id, output });
     } catch (error) {
       this.emit('stage:error', { name: stage.name, agentId: agent.id, error: error.message });

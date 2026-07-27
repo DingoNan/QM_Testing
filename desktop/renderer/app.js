@@ -11,24 +11,9 @@ const App = () => {
     setMode(window.appApi?.isElectron ? 'electron' : 'web');
   }, []);
 
-  // 启动时自动加载最近的项目
+  // 启动时清空上一轮的测试数据（智能审查、接口关联、回归结果、仪表盘等）
   React.useEffect(() => {
-    if (mode !== 'electron') return;
-    (async () => {
-      try {
-        const list = await window.appApi.listProjects();
-        if (Array.isArray(list) && list.length > 0) {
-          const latest = list[0];
-          const result = await window.appApi.readPipelineResult(latest.outDir);
-          if (result && result.success) {
-            pipelineStore.setState({
-              pipelineResult: result,
-              outDir: latest.outDir,
-            });
-          }
-        }
-      } catch {}
-    })();
+    pipelineStore.clearTestData();
   }, [mode]);
 
   // 监听 pipelineStore 页面切换
@@ -107,7 +92,10 @@ const App = () => {
       ),
       React.createElement('div', { className: 'sidebar-footer', key: 'footer' }, [
         React.createElement('div', { key: 'row', style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 6 } }, [
-          React.createElement('span', { className: 'sidebar-version', key: 'ver' }, 'v1.0.0'),
+          React.createElement('div', { key: 'ver-block', style: { display: 'flex', flexDirection: 'column', gap: 1 } }, [
+            React.createElement('span', { className: 'sidebar-version', key: 'ver' }, 'v1.0.0'),
+            React.createElement('span', { key: 'author', style: { fontSize: 9, color: 'rgba(255,255,255,0.15)', whiteSpace: 'nowrap' } }, '浅木·先生'),
+          ]),
           React.createElement('span', {
             className: 'sidebar-help-btn',
             key: 'help',

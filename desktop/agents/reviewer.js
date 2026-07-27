@@ -465,14 +465,19 @@ ${apiSummaries}${findingsText}
       }
 
       const text = result.response || '';
+      if (!text || !text.trim()) {
+        const extra = result._error ? ` (${result._error})` : '';
+        log.warn('AI 审查返回空响应' + extra);
+        return { error: 'AI 返回空响应，请检查 AI 配置或模型可用性' + extra };
+      }
       // 尝试提取 JSON（支持代码块、多余文本等情况）
       const parsed = this._extractJSON(text);
       if (parsed) {
         log.info(`AI 审查完成, 质量评级: ${parsed.overall_quality || 'unknown'}, 建议数: ${(parsed.suggestions || []).length}`);
         return parsed;
       }
-      log.warn(`AI 审查返回结果无法解析: ${text.slice(0, 200)}`);
-      return { raw: text };
+      log.warn(`AI 审查返回结果无法解析，返回内容前 200 字符: ${text.slice(0, 200)}`);
+      return { error: 'AI 返回结果格式无法解析，请确认 AI 模型支持 JSON 格式输出' };
     } catch (e) {
       log.error(`AI 审查失败: ${e.message}`);
       return { error: e.message };
@@ -519,13 +524,13 @@ ${apiSummaries}${findingsText}
         ).join('\n')
       : '';
 
-    const prompt = `你是一名 API 测试专家，请优化以下测试用例。
+    const prompt = `你是一名 API 测试专家，请优化以下测试用例中的问题接口。
 
 ## 用例信息
 名称: ${caseVo.name || '-'}
 域名: ${caseVo.domainName || '-'}
 
-## 接口列表
+## 接口列表（共 ${apis.length} 个，仅供参考）
 ${apiSummaries}${findingsText}${aiSuggestionsText}
 
 ## 优化要求
@@ -536,19 +541,40 @@ ${apiSummaries}${findingsText}${aiSuggestionsText}
 
 具体操作：
 1. 只添加缺失的状态码断言（如 responseBody.code = 200）
-2. **已有的断言必须保持原样输出**，不要改变其 expression、validateType 或 expectValue
-3. 断言中的 \`(空)\` 表示该断言未设置期望值，这是合理状态，不要试图"修复"
-4. 断言中的 \`(非空检查)\` / \`(存在检查)\` 表示仅检查字段是否存在，不需要期望值
+2. 已有的断言必须保持原样输出，不要改变其 expression、validateType 或 expectValue
+3. 断言中的 (空) 表示该断言未设置期望值，这是合理状态，不要试图修复
+4. 断言中的 (非空检查) / (存在检查) 表示仅检查字段是否存在，不需要期望值
 5. 补充必要的请求头
-6. **⚠️ 防过度修复**：不要修改本应为空的请求参数。保留原始空值/空字符串
+6. 防过度修复：不要修改本应为空的请求参数。保留原始空值/空字符串
 7. 保留所有原始数据不变
-8. **不要删除任何接口**
+8. 不要删除任何接口
 
 ## 输出格式
-请以 JSON 格式输出优化后的用例，保持与原用例相同的结构，只修改需要优化的部分。
-优化后的 JSON 中 apiVos 数组长度必须与原始完全一致。
+只输出一个 JSON **数组**，数组中的每个元素代表一个**需要修改的接口**。
+如果一个接口无需任何修改，则不要包含在数组中。
 
-只输出 JSON，不要其他文字。`;
+每条接口必须包含 index 字段（从 0 开始的序号），指明该接口在原始 apiVos 中的位置。
+
+输出示例:
+[
+  {
+    "index": 0,
+    "assertVos": [
+      {"expression": "responseBody.code", "validateType": 3, "expectValue": "200"}
+    ]
+  },
+  {
+    "index": 5,
+    "requestHeaders": {"Content-Type": "application/json"},
+    "assertVos": [
+      {"expression": "responseBody.code", "validateType": 3, "expectValue": "200"},
+      {"expression": "responseBody.data.id", "validateType": 1, "expectValue": ""}
+    ]
+  }
+]
+
+只输出 JSON 数组，不要其他文字。
+如果没有需要修改的接口，输出 []。`;
 
     try {
       const opts = {
@@ -565,13 +591,72 @@ ${apiSummaries}${findingsText}${aiSuggestionsText}
       }
 
       const text = result.response || '';
-      const parsedObj = this._extractJSON(text);
-      if (parsedObj) {
-        log.info('AI 优化完成 (全量)');
-        return { optimizedCase: parsedObj, message: 'AI 优化完成' };
+      // 解析 AI 返回的 JSON（期望一个对象或数组）
+      const parsed = this._extractJSON(text);
+      if (!parsed) {
+        log.warn(`AI 优化返回结果无法解析: ${text.slice(0, 200)}`);
+        return { optimizedCase: null, message: '无法解析 AI 返回结果' };
       }
-      log.warn(`AI 优化返回结果无法解析: ${text.slice(0, 200)}`);
-      return { optimizedCase: null, message: '无法解析 AI 返回结果' };
+
+      // 把修改合并回原始用例
+      const patches = Array.isArray(parsed) ? parsed : (parsed.apiVos || [parsed]);
+      const merged = JSON.parse(JSON.stringify(caseVo)); // 深拷贝
+
+      let patchCount = 0;
+      for (const patch of patches) {
+        // 确定目标接口索引
+        let targetIdx = patch.index;
+        if (targetIdx === undefined) {
+          // 没有 index 字段时尝试用 apiIndex
+          targetIdx = patch.apiIndex;
+        }
+        if (targetIdx === undefined || targetIdx < 0 || targetIdx >= merged.apiVos.length) {
+          log.warn(`AI 优化返回了无效的接口索引: ${targetIdx}，跳过`);
+          continue;
+        }
+
+        const target = merged.apiVos[targetIdx];
+        let changed = false;
+
+        // 合并 assertVos（如果 AI 返回了）
+        if (patch.assertVos && Array.isArray(patch.assertVos) && patch.assertVos.length > 0) {
+          target.assertVos = patch.assertVos;
+          changed = true;
+        }
+
+        // 合并 requestHeaders（如果 AI 返回了）
+        if (patch.requestHeaders && typeof patch.requestHeaders === 'object') {
+          target.requestHeaders = JSON.stringify(patch.requestHeaders);
+          changed = true;
+        }
+
+        // 合并 apiMethod（如果 AI 返回了）
+        if (patch.apiMethod) {
+          target.apiMethod = patch.apiMethod;
+          changed = true;
+        }
+
+        // 合并 apiUrl（如果 AI 返回了）
+        if (patch.apiUrl) {
+          target.apiUrl = patch.apiUrl;
+          changed = true;
+        }
+
+        // 合并 apiScript（如果 AI 返回了）
+        if (patch.apiScript && typeof patch.apiScript === 'object') {
+          target.apiScript = { ...target.apiScript, ...patch.apiScript };
+          changed = true;
+        }
+
+        if (changed) {
+          target._aiOptimized = true;
+          patchCount++;
+          log.info(`AI 优化: 接口 #${targetIdx + 1} ${target.apiMethod} ${target.apiUrl} 已更新`);
+        }
+      }
+
+      log.info(`AI 优化完成 (全量), 修改了 ${patchCount}/${merged.apiVos.length} 个接口`);
+      return { optimizedCase: merged, message: `AI 优化完成，修改了 ${patchCount} 个接口` };
     } catch (e) {
       log.error(`AI 优化失败: ${e.message}`);
       return { optimizedCase: null, error: e.message };
@@ -815,6 +900,11 @@ ${apiFindings.map(f => `- [${f.severity}] ${f.ruleName}: ${f.message}`).join('\n
 
       // ========== 4. 不稳定数组下标 ==========
       // 查找 ${seq.N.xxx[数字]} 模式
+      const allText = [
+        api.apiUrl || '',
+        ...Object.values(api.requestHeaders || {}).map(String),
+        typeof api.requestBody === 'string' ? api.requestBody : JSON.stringify(api.requestBody || ''),
+      ].join(' ');
       const arrayIdxMatches = allText.match(/\$\{?(?:seq\.)?\d+\.[^}]*\[\d+\]/g) || [];
       for (const match of arrayIdxMatches) {
         candidates.push({

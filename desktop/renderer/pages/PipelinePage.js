@@ -13,7 +13,7 @@ const PipelinePage = () => {
   const [hasRecordings, setHasRecordings] = React.useState(!!state.recording);
   const [envConfig, setEnvConfig] = React.useState(state.envConfig);
   const [showEnvForm, setShowEnvForm] = React.useState(false);
-  const [outDir, setOutDir] = React.useState('');
+  const [outDir, setOutDir] = React.useState(state.outDir || '');
   const [dataPools, setDataPools] = React.useState([]);
   const [showDataBinding, setShowDataBinding] = React.useState(false);
   const dbResult = pipelineStore.getState().pipelineResult;
@@ -171,10 +171,11 @@ const PipelinePage = () => {
   const handleSaveEnv = (config) => {
     setEnvConfig(config);
     pipelineStore.setState({ envConfig: config });
-    // 持久化到磁盘
-    if (outDir) {
+    // 持久化到磁盘（优先用局部 state 的 outDir，回退到 store 中的 outDir）
+    const targetDir = outDir || pipelineStore.getState().outDir;
+    if (targetDir) {
       try {
-        window.appApi.writeFile(outDir + '/env-config.json', config);
+        window.appApi.writeFile(targetDir + '/env-config.json', config);
       } catch (e) {
         console.warn('保存环境配置文件失败:', e);
       }

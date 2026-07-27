@@ -99,7 +99,11 @@ const EnvForm = ({ envConfig, onSave, onClose }) => {
   const handleSave = () => {
     // 将 cookies 数组同步到 globalHeaders
     const updatedForm = { ...form };
-    const cookieVal = cookiesToHeader(form.cookies);
+    let cookieVal = cookiesToHeader(form.cookies);
+    // 防御：如果 cookieVal 以 "Cookie=" 开头（用户误操作导致），剥离前缀
+    if (cookieVal && cookieVal.toUpperCase().startsWith('COOKIE=')) {
+      cookieVal = cookieVal.substring('COOKIE='.length);
+    }
     const globalHdrs = { ...(typeof form.globalHeaders === 'object' ? form.globalHeaders : {}) };
     if (cookieVal) {
       globalHdrs['Cookie'] = cookieVal;

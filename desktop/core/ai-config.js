@@ -168,12 +168,11 @@ function getProviderTypes() {
 }
 
 /**
- * 测试 Provider 连通性
+ * 测试 Provider 真实调用能力（连通性 + 模型响应）
  * @param {string} providerId - Provider ID
- * @returns {Promise<{ok: boolean, message: string, models?: string[]}>}
+ * @returns {Promise<{ok: boolean, message: string}>}
  */
 async function testConnection(providerId) {
-  // 动态引入 ai-client 避免循环依赖
   const { AIClient } = require('./ai-client');
   const provider = getById(providerId);
   if (!provider) {
@@ -181,13 +180,13 @@ async function testConnection(providerId) {
   }
 
   const client = new AIClient(provider);
-  return client.ping();
+  return client.testGeneration();
 }
 
 /**
- * 直接测试 Provider 连通性（不经过存储，用于表单预览测试）
+ * 直接测试 Provider 真实调用能力（不经过存储，用于表单预览）
  * @param {Object} provider - 完整的 Provider 配置对象
- * @returns {Promise<{ok: boolean, message: string, models?: string[]}>}
+ * @returns {Promise<{ok: boolean, message: string}>}
  */
 async function testConnectionDirect(provider) {
   const { AIClient } = require('./ai-client');
@@ -195,7 +194,7 @@ async function testConnectionDirect(provider) {
     return { ok: false, message: 'Provider 配置不完整，请填写 API 地址' };
   }
   const client = new AIClient(provider);
-  return client.ping();
+  return client.testGeneration();
 }
 
 module.exports = {

@@ -25,6 +25,32 @@ const pipelineStore = {
     chainRules: [],
     iterationMode: 'none',
   },
+
+  /** 重启后清空所有测试数据（保留数据池）*/
+  clearTestData() {
+    this.setState({
+      recording: null,
+      recordingPath: '',
+      stats: null,
+      pipelineRunning: false,
+      pipelineState: null,
+      stages: [
+        { agentId: 'cleaner', name: '数据清洗', status: 'pending' },
+        { agentId: 'env-analyzer', name: '环境识别', status: 'pending' },
+        { agentId: 'linker', name: '跨接口关联', status: 'pending' },
+        { agentId: 'assembler', name: '用例拼装', status: 'pending' },
+      ],
+      progress: {},
+      results: {},
+      envConfig: null,
+      caseVo: null,
+      pipelineResult: null,
+      outDir: '',
+      dataPoolConfig: null,
+      chainRules: [],
+      iterationMode: 'none',
+    });
+  },
   _listeners: [],
   getState() { return { ...this._state }; },
   setState(partial) {

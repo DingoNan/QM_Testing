@@ -108,10 +108,10 @@ const ReviewPage = () => {
           setRuleConfigs(configs);
         }
 
-        // 检查已保存的审查报告
+        // 检查已保存的审查报告（跳过已被清除的旧报告）
         if (state.outDir) {
           const report = await window.appApi.readReviewReport(state.outDir);
-          if (report) {
+          if (report && !report._cleared) {
             setReviewResult(report);
             if (report.candidates) {
               setCandidates(report.candidates);
@@ -222,7 +222,17 @@ const ReviewPage = () => {
           setCandidates(result.candidates);
           setShowCandidates(result.candidates.length > 0);
         }
-        window.appApi.showToast('审查完成，发现 ' + (result.stats?.failedCount || 0) + ' 个问题', 'success');
+        // 构造审查完成提示，区分 AI 状态
+        const aiMsg = (() => {
+          const ai = result.aiReview
+          if (!ai) return useAI ? '' : '';  // 未开启AI
+          if (ai.skipped) return '（AI 已跳过: ' + (ai.message || '未配置 AI Provider') + '）';
+          if (ai.error) return '（AI 审查失败: ' + ai.error + '，已降级为规则审查）';
+          if (ai.overall_quality) return '（AI 质量评分: ' + ai.overall_quality + '）';
+          return '';
+        })();
+        const toastMsg = '审查完成，发现 ' + (result.stats?.failedCount || 0) + ' 个问题' + (aiMsg ? ' ' + aiMsg : '');
+        window.appApi.showToast(toastMsg, result.stats?.failedCount === 0 ? 'success' : 'warning');
       } else {
         window.appApi.showToast('审查失败: ' + (result.error || '未知错误'), 'error');
       }
@@ -261,7 +271,26 @@ const ReviewPage = () => {
 
   const applyOptimized = async () => {
     if (!optimizeResult?.optimizedCase) return;
-    const updated = { ...pipelineResult, caseVo: optimizeResult.optimizedCase };
+    // 标记所有接口为 AI 优化过
+    const optimizedCase = optimizeResult.optimizedCase;
+    // 兜底：如果 apiVos 不在预期位置（防御 AI 返回结构异常）
+    let apiVos = optimizedCase.apiVos;
+    if (!apiVos || !Array.isArray(apiVos)) {
+      // 尝试从嵌套字段提取
+      for (const key of ['caseVo', 'result', 'data']) {
+        if (optimizedCase[key] && Array.isArray(optimizedCase[key].apiVos)) {
+          apiVos = optimizedCase[key].apiVos;
+          break;
+        }
+      }
+    }
+    if (!apiVos || !Array.isArray(apiVos)) {
+      window.appApi.showToast('AI 优化结果格式异常，请重试', 'error');
+      setOptimizeResult(null);
+      return;
+    }
+    apiVos.forEach(api => { api._aiOptimized = true; });
+    const updated = { ...pipelineResult, caseVo: optimizedCase };
     setPipelineResult(updated);
     pipelineStore.setState({ pipelineResult: updated });
     setOptimizeResult(null);
@@ -389,7 +418,7 @@ const ReviewPage = () => {
         // 应用优化结果到当前用例的指定接口
         const updated = { ...pipelineResult };
         if (updated.caseVo.apiVos[apiIdx]) {
-          Object.assign(updated.caseVo.apiVos[apiIdx], result.optimizedApi);
+          Object.assign(updated.caseVo.apiVos[apiIdx], result.optimizedApi, { _aiOptimized: true });
         }
         setPipelineResult(updated);
         pipelineStore.setState({ pipelineResult: updated });
@@ -1167,8 +1196,9 @@ const ReviewPage = () => {
         const issues = getApiIssues(i);
         const hasIssues = issues.length > 0;
         return React.createElement('div', {
-          className: 'review-card' + (expanded[i] ? ' expanded' : '') + (hasIssues ? ' has-issues' : ''),
+          className: 'review-card' + (expanded[i] ? ' expanded' : '') + (hasIssues ? ' has-issues' : '') + (api._aiOptimized ? ' ai-optimized' : ''),
           key: i,
+          style: api._aiOptimized ? { borderLeft: '3px solid #8b5cf6', background: 'linear-gradient(90deg, rgba(139,92,246,0.06), transparent)' } : {},
           draggable: true,
           onDragStart: e => handleDragStart(e, i),
           onDragEnd: handleDragEnd,
@@ -1196,6 +1226,9 @@ const ReviewPage = () => {
               React.createElement('span', { className: 'method-badge method-' + (api.apiMethod || 'GET').toLowerCase() }, api.apiMethod || 'GET'),
               React.createElement('span', { className: 'review-card-path' }, api.domainName + (api.apiUrl || '')),
               React.createElement('span', { className: 'tag tag-info', style: { marginRight: 4, fontSize: 11 }}, '#' + (i + 1)),
+                api._aiOptimized && React.createElement('span', {
+                  style: { fontSize: 10, padding: '1px 6px', borderRadius: 3, background: '#8b5cf6', color: '#fff', marginRight: 4 },
+                }, 'AI'),
               hasIssues && React.createElement('span', {
                 className: 'issue-badge issue-' + issues[0].severity, key: 'ib', title: issues[0].message,
                 onClick: e => {
@@ -1211,7 +1244,7 @@ const ReviewPage = () => {
             // Edit button
             React.createElement('button', {
               className: 'btn btn-sm', key: 'edit',
-              onClick: e => { e.stopPropagation(); startEditApi(i); },
+              onClick: e => { e.stopPropagation(); if (editingApiIdx === i) { setEditingApiIdx(null); setEditingApiForm(null); } else { startEditApi(i); } },
               style: { padding: '2px 8px', fontSize: 12 },
             }, editingApiIdx === i ? '取消' : '编辑'),
             // AI 单条优化

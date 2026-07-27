@@ -60,11 +60,17 @@ class AIClient {
           try {
             const parsed = JSON.parse(data);
             if (parsed.error) {
-              reject(new Error(`API 错误: ${typeof parsed.error === 'string' ? parsed.error : JSON.stringify(parsed.error)}`));
+              const errDetail = typeof parsed.error === 'string' ? parsed.error : JSON.stringify(parsed.error);
+              log.warn(`AI API 返回错误 (HTTP ${res.statusCode}): ${errDetail}`);
+              reject(new Error(`API 错误 (${res.statusCode}): ${errDetail}`));
+            } else if (res.statusCode >= 400) {
+              log.warn(`AI API 返回非成功状态码 ${res.statusCode}, 响应: ${data.slice(0, 200)}`);
+              reject(new Error(`API 返回状态码 ${res.statusCode}`));
             } else {
               resolve(parsed);
             }
-          } catch {
+          } catch (e) {
+            log.warn(`AI API 响应 JSON 解析失败 (HTTP ${res.statusCode}): ${data.slice(0, 200)}`);
             resolve({ response: data });
           }
         });
@@ -151,6 +157,33 @@ class AIClient {
   }
 
   /**
+   * 真实调用测试：发一条简单 prompt 验证模型能否正确返回
+   * @returns {Promise<{ok: boolean, message: string}>}
+   */
+  async testGeneration() {
+    const providerName = this.provider.name || this.baseUrl;
+    try {
+      const result = await this.generate('请用一句话回复：你是什么模型？', {
+        temperature: 0.1,
+        maxTokens: 100,
+      });
+      const text = result.response || '';
+      if (!text || !text.trim()) {
+        return { ok: false, message: `${providerName} 调用成功但返回内容为空，请检查模型配置` };
+      }
+      return {
+        ok: true,
+        message: `${providerName} 调用成功（模型: ${this.defaultModel || '默认'}）\n返回: ${text.slice(0, 120)}`,
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        message: `${providerName} 调用失败 — ${err.message}`,
+      };
+    }
+  }
+
+  /**
    * 列出远程可用模型
    * @returns {Promise<string[]>}
    */
@@ -219,9 +252,18 @@ class AIClient {
     };
 
     const result = await this._openAIRequest('POST', '/chat/completions', body);
-    const responseText = result.choices && result.choices[0]
-      ? result.choices[0].message.content
-      : '';
+    if (!result.choices || !Array.isArray(result.choices) || result.choices.length === 0) {
+      const errMsg = `AI 返回异常: choices 为空或缺失, 响应结构: ${JSON.stringify(result).slice(0, 300)}`;
+      log.warn(errMsg);
+      return { response: '', _error: errMsg };
+    }
+    const choice = result.choices[0];
+    if (!choice.message || choice.message.content === undefined || choice.message.content === null) {
+      const errMsg = `AI 返回异常: message.content 为空, 完整 choice: ${JSON.stringify(choice).slice(0, 200)}`;
+      log.warn(errMsg);
+      return { response: '', _error: errMsg };
+    }
+    const responseText = choice.message.content;
 
     // 记录 Token 使用
     if (result.usage) {

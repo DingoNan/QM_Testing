@@ -229,6 +229,19 @@ function registerIpcHandlers(ipcMain, mainWindow) {
       return { error: '录制文件不存在' };
     }
 
+    // 新管道启动时，清理旧的审查报告等残留文件
+    if (outDir) {
+      try {
+        const reviewPath = path.join(outDir, 'review-report.json');
+        if (fs.existsSync(reviewPath)) {
+          fs.unlinkSync(reviewPath);
+          log.info('管道启动：已清除旧的审查报告');
+        }
+      } catch (e) {
+        log.warn('管道启动：清理审查报告失败: ' + e.message);
+      }
+    }
+
     // 优先使用编辑后的数据（import-edited.json），否则使用原始文件
     let raw;
     const editedPath = outDir ? path.join(outDir, 'import-edited.json') : '';
@@ -524,13 +537,13 @@ function registerIpcHandlers(ipcMain, mainWindow) {
     }
   });
 
-  // 保存环境配置
-  ipcMain.handle('env:save', async (event, envConfig) => {
+  // 保存环境配置（接受可选的 outDir 参数）
+  ipcMain.handle('env:save', async (event, envConfig, outDirParam) => {
     const env = new Environment(envConfig);
-    const outDir = getOutDir('.');
-    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, 'env-config.json'), JSON.stringify(env.toJSON(), null, 2), 'utf-8');
-    return { status: 'saved' };
+    const targetDir = outDirParam || getOutDir('.');
+    if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+    fs.writeFileSync(path.join(targetDir, 'env-config.json'), JSON.stringify(env.toJSON(), null, 2), 'utf-8');
+    return { status: 'saved', outDir: targetDir };
   });
 
   // ============ AI 模型配置 ============
@@ -709,6 +722,12 @@ function registerIpcHandlers(ipcMain, mainWindow) {
 
       const { RegressionRunnerAgent } = require('../agents/regression-runner');
       const runner = new RegressionRunnerAgent({ outDir });
+      // 转发进度事件到渲染进程（实时日志+进度条）
+      runner.onProgress((msg) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('pipeline:progress', { ...msg, agentId: 'regression-runner' });
+        }
+      });
       const result = await runner.execute({
         data: caseVo,
         envConfig,
@@ -767,6 +786,32 @@ function registerIpcHandlers(ipcMain, mainWindow) {
       }
       ensureReportsDir();
 
+      // 自动读取同目录下的审查报告，合并到回归报告中
+      const outDir = reportData.outDir;
+      let reviewInfo = null;
+      if (outDir) {
+        try {
+          const reviewPath = path.join(outDir, 'review-report.json');
+          if (fs.existsSync(reviewPath)) {
+            const review = JSON.parse(fs.readFileSync(reviewPath, 'utf-8'));
+            if (review && !review._cleared) {
+              reviewInfo = {
+                findingsCount: (review.findings || []).filter(f => !f.pass).length,
+                candidatesCount: (review.candidates || []).length,
+                aiReview: review.aiReview || null,
+              };
+            }
+          }
+        } catch {}
+      }
+
+      // 合并审查信息到报告
+      const enrichedData = { ...reportData };
+      delete enrichedData.outDir;  // 去掉临时字段
+      if (reviewInfo) {
+        enrichedData.reviewInfo = reviewInfo;
+      }
+
       const caseName = reportData.caseName || '未命名用例';
       const timestamp = reportData.timestamp || new Date().toISOString();
       const tsShort = timestamp.replace(/[:.]/g, '-').slice(0, 19);
@@ -775,7 +820,7 @@ function registerIpcHandlers(ipcMain, mainWindow) {
 
       // 保存完整报告文件
       const reportPath = path.join(REPORTS_DIR, `${reportId}.json`);
-      fs.writeFileSync(reportPath, JSON.stringify(reportData, null, 2), 'utf-8');
+      fs.writeFileSync(reportPath, JSON.stringify(enrichedData, null, 2), 'utf-8');
 
       // 更新索引
       const index = loadReportsIndex();
@@ -1423,6 +1468,12 @@ function registerIpcHandlers(ipcMain, mainWindow) {
 
       const { RegressionRunnerAgent } = require('../agents/regression-runner');
       const runner = new RegressionRunnerAgent({ outDir });
+      // 转发进度事件到渲染进程（实时日志+进度条）
+      runner.onProgress((msg) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('pipeline:progress', { ...msg, agentId: 'regression-runner' });
+        }
+      });
       const result = await runner.execute({
         data: caseVo,
         envConfig,

@@ -16,7 +16,7 @@ function _inferStatusField(body) {
     try { parsed = JSON.parse(parsed); } catch { return 'statusCode'; }
   }
   if (typeof parsed !== 'object' || parsed === null) return 'statusCode';
-  const STATUS_FIELDS = ['statusCode', 'code', 'status', 'ret', 'errorCode', 'errCode', 'resultCode'];
+  const STATUS_FIELDS = ['statusCode', 'code', 'status', 'ret', 'errorCode', 'errCode', 'resultCode', 'status_code'];
   for (const field of STATUS_FIELDS) {
     if (field in parsed && parsed[field] !== null && parsed[field] !== undefined) {
       return field;
@@ -184,14 +184,12 @@ class CaseVo {
           validateType: a.validateType || 3,
         }));
       } else {
-        // 降级：从响应体推断状态字段名和值，避免硬编码特定字段名
-        const fallbackField = _inferStatusField(r.responseBody);
-        const fallbackValue = _inferStatusValue(r.responseBody, fallbackField);
+        // 降级：使用 HTTP 响应状态码断言（直接检查 HTTP 状态，不依赖响应体字段）
         assertVos = [
           {
             delay: 0,
-            expectValue: fallbackValue,
-            expression: 'responseBody.' + fallbackField,
+            expectValue: String(r.status || 200),
+            expression: 'statusCode',
             logicType: 1,
             validateType: 3,
           },

@@ -273,7 +273,7 @@ class CleanerAgent extends BaseAgent {
     //    先检查 body 中是否有匹配 HTTP 状态的字段，不使用硬编码 field name
     let httpStatusAssertionCreated = false;
     if (record.status && body && typeof body === 'object') {
-      const HTTP_STATUS_FIELDS = ['statusCode', 'code', 'status', 'ret', 'errorCode', 'errCode', 'resultCode'];
+      const HTTP_STATUS_FIELDS = ['statusCode', 'code', 'status', 'ret', 'errorCode', 'errCode', 'resultCode', 'status_code'];
       const statusStr = String(record.status);
       for (const field of HTTP_STATUS_FIELDS) {
         if (field in body && String(body[field]) === statusStr) {
@@ -294,7 +294,7 @@ class CleanerAgent extends BaseAgent {
     // 2. 响应顶层常见状态字段（跳过第1步已创建的断言）
     const alreadyHandledAtHttpStep = assertions.length > 0 && httpStatusAssertionCreated
       ? assertions[assertions.length - 1].expression.replace('responseBody.', '') : null;
-    const STATUS_FIELDS = ['statusCode', 'code', 'status', 'ret', 'errorCode', 'errCode', 'resultCode'];
+    const STATUS_FIELDS = ['statusCode', 'code', 'status', 'ret', 'errorCode', 'errCode', 'resultCode', 'status_code'];
     for (const field of STATUS_FIELDS) {
       if (field === alreadyHandledAtHttpStep) continue;
       if (field in body && body[field] !== null && body[field] !== undefined) {
@@ -320,55 +320,64 @@ class CleanerAgent extends BaseAgent {
       });
     }
 
-    // 4. message/msg 字段存在性（值非空）
-    if ('message' in body && body.message) {
-      assertions.push({
-        expression: 'responseBody.message',
-        expectValue: String(body.message),
-        validateType: 3,
-        source: 'inferred_message',
-      });
+    // 4. message/msg/reason 字段存在性（值非空）
+    for (const msgField of ['message', 'msg', 'reason']) {
+      if (msgField in body && body[msgField]) {
+        assertions.push({
+          expression: `responseBody.${msgField}`,
+          expectValue: String(body[msgField]),
+          validateType: 1,
+          source: 'inferred_message',
+        });
+        break; // 只取第一个
+      }
     }
 
     // 5. data 下的关键字段
     const data = body && typeof body.data === 'object' ? body.data : null;
     if (data) {
-      const keys = Object.keys(data);
-      // 对 GET 和非创建类请求，断言 data 字段存在
-      if (method === 'GET' || !method.endsWith('POST')) {
-        for (const key of keys) {
-          const val = data[key];
-          if (val === null || val === undefined) continue;
-          // 跳过太长的字符串、对象、数组
-          if (typeof val === 'object') continue;
-          if (typeof val === 'string' && val.length > 200) continue;
+      // 如果 data 是数组且非空，取第一个元素的键作为候选断言
+      const dataObj = Array.isArray(data) ? (data.length > 0 && typeof data[0] === 'object' ? data[0] : null) : data;
+      if (dataObj) {
+        const keys = Object.keys(dataObj);
+        // 对 GET 和非创建类请求，断言 data 字段存在
+        if (method === 'GET' || !method.endsWith('POST')) {
+          for (const key of keys) {
+            const val = dataObj[key];
+            if (val === null || val === undefined) continue;
+            // 跳过太长的字符串、对象、数组
+            if (typeof val === 'object') continue;
+            if (typeof val === 'string' && val.length > 200) continue;
 
-          const path = `responseBody.data.${key}`;
-          // 避免与已有断言重复
-          if (assertions.some(a => a.expression === path)) continue;
-          assertions.push({
-            expression: path,
-            expectValue: typeof val === 'number' ? String(val) : String(val),
-            validateType: 3,
-            source: 'inferred_data_field',
-          });
+            const prefix = Array.isArray(data) ? 'responseBody.data[0]' : 'responseBody.data';
+            const path = prefix + '.' + key;
+            // 避免与已有断言重复
+            if (assertions.some(a => a.expression === path)) continue;
+            assertions.push({
+              expression: path,
+              expectValue: typeof val === 'number' ? String(val) : String(val),
+              validateType: 1,
+              source: 'inferred_data_field',
+            });
+          }
         }
-      }
 
-      // 对 POST 创建类请求，断言 responseBody.data.id 或 data.xxxId 存在
-      if (method === 'POST' || method === 'PUT') {
-        for (const key of keys) {
-          if (key === 'id' || key.endsWith('Id') || key.endsWith('ID')) {
-            const val = data[key];
-            if (val !== null && val !== undefined) {
-              const path = `responseBody.data.${key}`;
-              if (!assertions.some(a => a.expression === path)) {
-                assertions.push({
-                  expression: path,
-                  expectValue: String(val),
-                  validateType: 3,
-                  source: 'inferred_creation_id',
-                });
+        // 对 POST 创建类请求，断言 responseBody.data.id 或 data.xxxId 存在
+        if (method === 'POST' || method === 'PUT') {
+          for (const key of keys) {
+            if (key === 'id' || key.endsWith('Id') || key.endsWith('ID')) {
+              const val = dataObj[key];
+              if (val !== null && val !== undefined) {
+                const prefix = Array.isArray(data) ? 'responseBody.data[0]' : 'responseBody.data';
+                const path = prefix + '.' + key;
+                if (!assertions.some(a => a.expression === path)) {
+                  assertions.push({
+                    expression: path,
+                    expectValue: String(val),
+                    validateType: 1,
+                    source: 'inferred_creation_id',
+                  });
+                }
               }
             }
           }
@@ -378,16 +387,19 @@ class CleanerAgent extends BaseAgent {
 
     // 6. 分页相关
     if (data && typeof data === 'object') {
-      for (const field of ['total', 'pageSize', 'totalCount', 'pageNum', 'totalPages', 'currentPage']) {
-        if (field in data && typeof data[field] === 'number') {
-          const path = `responseBody.data.${field}`;
-          if (!assertions.some(a => a.expression === path)) {
-            assertions.push({
-              expression: path,
-              expectValue: String(data[field]),
-              validateType: 3,
-              source: 'inferred_pagination',
-            });
+      const dataObj = Array.isArray(data) ? null : data; // 分页字段通常在data对象上，不在数组上
+      if (dataObj) {
+        for (const field of ['total', 'pageSize', 'totalCount', 'pageNum', 'totalPages', 'currentPage']) {
+          if (field in dataObj && typeof dataObj[field] === 'number') {
+            const path = `responseBody.data.${field}`;
+            if (!assertions.some(a => a.expression === path)) {
+              assertions.push({
+                expression: path,
+                expectValue: String(dataObj[field]),
+                validateType: 1,
+                source: 'inferred_pagination',
+              });
+            }
           }
         }
       }

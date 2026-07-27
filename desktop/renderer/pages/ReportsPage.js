@@ -39,6 +39,19 @@ const ReportsPage = () => {
     loadReports();
   }, [loadReports]);
 
+  // 从回归验证跳转过来时，自动打开对应报告的详情
+  React.useEffect(() => {
+    const state = pipelineStore.getState();
+    const targetId = state.lastReportId;
+    if (targetId && reports.length > 0) {
+      pipelineStore.setState({ lastReportId: null });
+      const found = reports.find(r => r.id === targetId);
+      if (found) {
+        handleViewDetail(found);
+      }
+    }
+  }, [reports]);
+
   // 搜索
   const handleSearch = () => {
     loadReports(searchCase.trim() || undefined);
@@ -367,7 +380,9 @@ const ReportsPage = () => {
   // === 渲染: 详情视图 ===
   const renderDetailView = () => {
     if (!selectedReport) return null;
-    const { stats, results } = selectedReport;
+    const { stats, results, reviewInfo } = selectedReport;
+
+    const hasReview = reviewInfo && (reviewInfo.findingsCount > 0 || reviewInfo.candidatesCount > 0 || (reviewInfo.aiReview && !reviewInfo.aiReview.error && !reviewInfo.aiReview.skipped));
 
     const jumpToItem = () => {
       const n = parseInt(jumpToInput);
@@ -481,6 +496,51 @@ const ReportsPage = () => {
           style: { marginTop: 8, fontSize: 12, color: 'var(--text-secondary)', textAlign: 'center' },
           key: 'assert',
         }, '断言 ' + (stats.passedAssertions || 0) + '/' + (stats.totalAssertions || 0) + ' 通过 (' + (stats.assertionPassRate || 0) + '%)'),
+      ]),
+
+      // 审查信息
+      hasReview && React.createElement('div', { className: 'card', key: 'review', style: { marginBottom: 16 } }, [
+        React.createElement('div', { className: 'card-header', key: 'h' },
+          React.createElement('div', { className: 'card-title', key: 't' }, '🔍 智能审查结果'),
+        ),
+        React.createElement('div', { style: { padding: 16 }, key: 'body' }, [
+          React.createElement('div', { style: { display: 'flex', gap: 16, marginBottom: reviewInfo.aiReview ? 12 : 0, flexWrap: 'wrap' } }, [
+            reviewInfo.findingsCount > 0 && React.createElement('div', { key: 'fi', style: { fontSize: 13 } }, [
+              React.createElement('span', { style: { fontWeight: 600 } }, reviewInfo.findingsCount),
+              ' 个规则审查问题',
+            ]),
+            reviewInfo.candidatesCount > 0 && React.createElement('div', { key: 'ci', style: { fontSize: 13 } }, [
+              React.createElement('span', { style: { fontWeight: 600 } }, reviewInfo.candidatesCount),
+              ' 项候选优化建议',
+            ]),
+          ]),
+          reviewInfo.aiReview && !reviewInfo.aiReview.error && !reviewInfo.aiReview.skipped &&
+            React.createElement('div', { key: 'ai', style: { marginTop: 8, padding: 12, background: 'var(--bg-secondary)', borderRadius: 6, fontSize: 13 } }, [
+              React.createElement('div', { style: { fontWeight: 600, marginBottom: 4 } }, [
+                'AI 深度审查',
+                reviewInfo.aiReview.overall_quality && React.createElement('span', {
+                  style: {
+                    marginLeft: 8, fontSize: 11, padding: '1px 8px', borderRadius: 3,
+                    background: reviewInfo.aiReview.overall_quality === 'good' ? '#22c55e' : reviewInfo.aiReview.overall_quality === 'fair' ? '#f59e0b' : '#ef4444',
+                    color: '#fff',
+                  },
+                }, reviewInfo.aiReview.overall_quality === 'good' ? '良好' : reviewInfo.aiReview.overall_quality === 'fair' ? '一般' : '较差'),
+              ]),
+              reviewInfo.aiReview.summary && React.createElement('p', { style: { margin: 0, color: 'var(--text-secondary)' } }, reviewInfo.aiReview.summary),
+              reviewInfo.aiReview.suggestions && reviewInfo.aiReview.suggestions.length > 0 &&
+                React.createElement('div', { style: { marginTop: 8 } }, [
+                  React.createElement('div', { style: { fontWeight: 600, fontSize: 12, marginBottom: 4 } }, '改进建议 (' + reviewInfo.aiReview.suggestions.length + ' 条)'),
+                  React.createElement('div', { style: { maxHeight: 160, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 } },
+                    reviewInfo.aiReview.suggestions.map((s, j) =>
+                      React.createElement('div', { key: j, style: { fontSize: 12, padding: '4px 8px', background: 'var(--bg)', borderRadius: 4, border: '1px solid var(--border)' } }, [
+                        React.createElement('span', { style: { fontWeight: 600, color: 'var(--text)' } }, '接口 ' + (s.apiIndex + 1) + ': '),
+                        React.createElement('span', { style: { color: 'var(--text-secondary)' } }, s.suggestion || s.issue || '-'),
+                      ])
+                    ),
+                  ),
+                ]),
+            ]),
+        ]),
       ]),
 
       // 各接口详情

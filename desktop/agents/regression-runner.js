@@ -581,10 +581,27 @@ class RegressionRunnerAgent extends BaseAgent {
     for (const part of pathParts) {
       if (current === null || current === undefined) return undefined;
       if (typeof current !== 'object') return undefined;
-      if (part in current) {
-        current = current[part];
+      // 处理 data[0] 数组索引语法
+      const bracketMatch = part.match(/^(.+?)\[(\d+)\]$/);
+      if (bracketMatch) {
+        const field = bracketMatch[1];
+        const idx = parseInt(bracketMatch[2], 10);
+        if (field in current) {
+          current = current[field];
+          if (Array.isArray(current) && idx >= 0 && idx < current.length) {
+            current = current[idx];
+          } else {
+            return undefined;
+          }
+        } else {
+          return undefined;
+        }
       } else {
-        return undefined;
+        if (part in current) {
+          current = current[part];
+        } else {
+          return undefined;
+        }
       }
     }
     return current;
