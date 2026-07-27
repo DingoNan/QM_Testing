@@ -116,25 +116,65 @@ const ToolGuide = ({ onClose }) => {
         React.createElement('div', { key: 'param', style: style.section }, [
           React.createElement('div', { key: 't', style: style.sectionTitle }, '🔧 参数化使用说明'),
           React.createElement('p', { key: 'p', style: style.sectionDesc },
-            'QM-Testing 支持三种变量引用方式，可在请求 URL、Header、Body 中灵活使用：'),
+            'QM-Testing 支持多种变量引用方式，可在请求 URL、Header、Body 及断言中灵活使用。所有变量引用均采用 '),
+          React.createElement('p', { key: 'p2', style: { ...style.sectionDesc, fontWeight: 600, fontSize: 14 } },
+            '通用语法: ${变量表达式}  —  支持嵌套路径，如 ${seq.1.data.token}'),
+
           React.createElement('div', { key: 'c1', style: style.card }, [
-            React.createElement('div', { style: { fontWeight: 600, fontSize: 13, marginBottom: 4 } }, '📦 数据池变量'),
-            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 } }, '引用数据池中的字段值，实现数据驱动：'),
-            React.createElement('code', { style: style.code }, '${data.数据池名称.字段名}'),
-            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 } }, '示例: ${data.loginUser.username} — 从"loginUser"数据池中取"username"字段'),
+            React.createElement('div', { style: { fontWeight: 600, fontSize: 13, marginBottom: 4 } }, '🔗 接口响应变量（接口关联）'),
+            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 } },
+              '引用前面接口的响应值，自动建立上下游依赖：'),
+            React.createElement('code', { style: style.code }, '${seq.序号.JSON路径}'),
+            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 } },
+              '示例: ${seq.1.data.token} — 引用第1个接口响应的 data.token'),
+            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 } },
+              '示例: ${seq.2_headers.Set-Cookie} — 引用第2个接口响应头中的 Set-Cookie'),
           ]),
           React.createElement('div', { key: 'c2', style: style.card }, [
-            React.createElement('div', { style: { fontWeight: 600, fontSize: 13, marginBottom: 4 } }, '🔗 接口响应变量'),
-            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 } }, '引用前面接口的响应值，实现接口关联：'),
-            React.createElement('code', { style: style.code }, '${seq.序号.JSON路径}'),
-            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 } }, '示例: ${seq.1.data.token} — 引用第1个接口响应的 data.token'),
+            React.createElement('div', { style: { fontWeight: 600, fontSize: 13, marginBottom: 4 } }, '📦 数据池变量（数据驱动）'),
+            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 } }, '引用数据池中的字段值，实现数据驱动：'),
+            React.createElement('code', { style: style.code }, '${data.数据池名称.字段名}'),
+            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 } }, '示例: ${data.loginUser.username} — 从 loginUser 数据池取 username'),
           ]),
           React.createElement('div', { key: 'c3', style: style.card }, [
             React.createElement('div', { style: { fontWeight: 600, fontSize: 13, marginBottom: 4 } }, '🌐 环境变量'),
-            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 } }, '引用环境配置中的变量，管理不同环境的差异：'),
+            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 } }, '引用环境配置中的变量，管理不同环境差异：'),
             React.createElement('code', { style: style.code }, '${env.变量名}'),
             React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 } }, '示例: ${env.baseURL} — 引用环境变量中的 baseURL'),
+            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 } }, '示例: ${env.globalHeaders.Authorization} — 引用全局请求头中的 Token'),
           ]),
+
+          // 平台函数
+          React.createElement('div', { style: { marginTop: 16, marginBottom: 8, fontWeight: 600, fontSize: 13, color: 'var(--text)' } }, '🧩 内置平台函数（可直接在表达式中使用）'),
+          React.createElement('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 6 } },
+            [
+              { name: '${RandomUUID}', desc: '生成随机 UUID v4' },
+              { name: '${RandomInt}', desc: '生成随机整数' },
+              { name: '${Timestamp}', desc: '当前时间戳(ms)' },
+              { name: '${DateTime}', desc: '当前时间 yyyy-MM-dd' },
+              { name: '${Tel}', desc: '随机手机号' },
+              { name: '${IC}', desc: '随机身份证号' },
+            ].map(fn =>
+              React.createElement('span', {
+                key: fn.name, style: {
+                  fontSize: 12, padding: '4px 10px', borderRadius: 6,
+                  background: 'var(--bg-alt)', border: '1px solid var(--border)',
+                  fontFamily: 'monospace', color: 'var(--primary)',
+                },
+                title: fn.desc,
+              }, fn.name + ' — ' + fn.desc)
+            )
+          ),
+
+          // 断言中的变量
+          React.createElement('div', { style: { marginTop: 16 }, key: 'assert-var' },
+            React.createElement('div', { style: { ...style.tip, borderLeftColor: '#8B5CF6' } }, [
+              React.createElement('span', { style: { fontWeight: 600 } }, '🔬 断言表达式中的变量 — '),
+              '断言同样支持变量引用，如 ', React.createElement('code', { style: style.code }, '${seq.1.data.total}'),
+              ' 可动态断言接口间的数据一致性。也可以在期望值中使用 ', React.createElement('code', { style: style.code }, '${env.xxx}'),
+              ' 引用环境配置。',
+            ])
+          ),
         ]),
 
         // === 测试数据使用 ===
